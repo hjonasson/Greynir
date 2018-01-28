@@ -91,6 +91,16 @@ _TEST_NT_MAP = { # Til að prófa í parse_text_to_bracket_form()
     "TengiorðSem" : "C",
     "Greinir": "DET",
     #"Lo" : "ADJ",
+   
+    # Tímaliðir - nýir
+    "Tímanafnliður" : "NP-TMP",
+    "TímaAtviksEinkunn" : "ADVP",
+    "TímaAtviksliður" : "ADVP-TMP",
+    "TímaLo" : "ADJP",
+    "TímaFn" : "ADJP",
+    "RaðtalaLo" : "ADJP",
+    "Raðnafnliður" : "NP-TMP",
+    "AllurÞessi" : "ADJP",
 
 }
 
@@ -104,6 +114,7 @@ _TEST_TERMINAL_MAP = {
     "kk" : "N",
     "kvk" : "N",
     "fyrirtæki" : "N",
+    "tno" : "N",
     "fn" : "PRON",
     "pfn" : "PRON",
     "abfn" : "PRON",
@@ -111,6 +122,7 @@ _TEST_TERMINAL_MAP = {
     "ao" : "ADV",
     "eo" : "ADV",
     "spao" : "ADV",
+    "tao" : "ADV",
     "lo" : "ADJ",
     "raðnr" : "ADJ", # Raðtölur
     "töl" : "NUM",
@@ -141,9 +153,11 @@ _TEST_ID_MAP = { # Til að prófa í parse_text_to_bracket_form()
     "NP-OBJ" : dict(name = "Beint andlag"),
     "NP-IOBJ" : dict(name = "Óbeint andlag"),
     "NP-PRD" : dict(name = "Sagnfylling"),
+    "NP-TMP" : dict(name = "Tímanafnliður"),
 
     "ADVP" : dict(name = "Atviksliður", subject_to = { "ADVP" }),
     "ADVP-DATE" : dict(name = "Tímasetning", overrides = "ADVP"),
+    "ADVP-TMP" : dict(name = "Tímaatviksliður"),
     "PP" : dict(name = "Forsetningarliður", overrides = "ADVP"),
     "ADJP" : dict(name = "Lýsingarliður"),
     
@@ -411,7 +425,6 @@ class TreeUtility:
             num_combinations = ip.num_combinations,
             total_score = ip.total_score
         )
-
         return (pgs, stats)
 
     @staticmethod
@@ -547,7 +560,6 @@ class TreeUtility:
     def parse_text_with_full_tree(session, text, all_names = False):
         """ Parse plain text, assumed to contain one sentence only, and
             return its simplified form as well as its full form. """
-
         full_tree = None
 
         def xform(tokens, tree, err_index):

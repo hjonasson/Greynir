@@ -88,7 +88,9 @@ class BIN_Token(Token):
         "st": "st",
         "stt": "stt", # Never appears in BÍN
         "abfn": "abfn",
-        "nhm": "nhm"
+        "nhm": "nhm",
+        "tno": "tno",
+        "tao": "tao",
     }
 
     # Strings that must be present in the grammatical form for variants
@@ -235,6 +237,49 @@ class BIN_Token(Token):
 
     # Interrogative adverbs
     _SPAO = frozenset([ "hvar", "hvenær", "hvernig", "hvaðan", "hvert", "hví", "hve", "hversu" ])
+ 
+    # Temporal sentential adverbs
+    _TAO = frozenset([ "daglega", "dagsdaglega", "alltaf", "aldrei", "fyrr", "fyrrum", "loks", "loksins", 
+        "mánaðarlega", "nú", "núna", "næst", "oft", "reglulega", "seint", "snemma", "sjaldan", "stundum", 
+        "síðar", "síðla", "títt", "undanfarið", "vikulega", "árla", "árlega", "áður", "þá", ])
+
+    # Temporal nouns
+    _TNO = frozenset([ "skírdagur", "pálmasunnudagur", "páskadagur", "páskahelgi", "páskahátíð", 
+        "páskar", "dymbilvika", "uppstigningardagur", "hvítasunnudagur", "jól", "Þorláksmessa", 
+        "aðfangadagur", "jóladagur", "gamlársdagur", "nýár" "nýársdagur", "nýárshátíð", 
+        "þrettándahátíð", "þrettándi", "bolludagur", "sprengidagur", "öskudagur", "bóndadagur", 
+        "mæðradagur", "feðradagur", "konudagur", "sjómannadagur", "Valentínusardagur", "verslunarmannahelgi", 
+        "fullveldisdagur", "þjóðhátíðardagur", "gleðigangan", "menningarnótt", "allraheilagramessa", 
+        "hrekkjavaka", "jónsmessudagur", "þakkargjörðardagur", "þakkargjörðarhátíð", "fæðingarstund", 
+        "fæðingardagur", "afmæli", "afmælisdagur", "messudagur", "fermingardagur", "útskriftardagur", 
+        "giftingardagur", "brúðkaupsdagur", "stúdentsafmæli", "helgidagur", "kosningadagur", "sumarfrísdagur", 
+        "útfarardagur", "dánarafmæli", "dánardægur", "dánarstund", "sunnudagskvöld", "sunnudagsmorgunn", 
+        "sunnudagur", "mánudagskvöld", "mánudagsmorgunn", "mánudagur", "þriðjudagskvöld", "þriðjudagur", 
+        "þriðjudagsmorgunn", "miðvikudagskvöld", "miðvikudagur", "miðvikudagsmorgunn", "fimmtudagskvöld", 
+        "fimmtudagur", "fimmtudagsmorgunn", "föstudagskvöld", "föstudagur", "föstudagsmorgunn", 
+        "laugardagskvöld", "laugardagur", "laugardagsmorgunn", "mánadagur", "týsdagur", "óðinsdagur", 
+        "þórsdagur", "frjádagur", "þvottdagur", "janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", 
+        "ágúst", "september", "október", "nóvember", "desember", "janúarmánuður", "febrúarmánuður", 
+        "marsmánuður", "aprílmánuður", "maímánuður", "júnímánuður", "júlímánuður", "ágústmánuður", 
+        "septembermánuður", "októbermánuður", "nóvembermánuður", "desembermánuður", "einmánuður", "harpa", 
+        "skerpla", "sólmánuður", "heyannir", "tvímánuður", "haustmánuður", "gormánuður", "ýlir", "mörsugur", 
+        "þorri", "góa", "nanósekúnda", "míkrósekúnda", "millisekúnda", "sekúndubrot", "sekúnda", "sek.", "mín.", 
+        "mínúta", "korter", "kortér", "stundarfjórðungur", "hálftími", "klst.", "klukkustund", "klukkutími", 
+        "tími", "vinnustund", "sólarhringur", "dagur", "vika", "mánuður", "misseri", "önn", "ársfjórðungur", 
+        "árshelmingur", "ár", "áratugur", "aldarfjórðungur", "árhundrað", "öld", "árþúsund", "þúsöld",
+        "fyrradagur", "rismál", "árdegi", "árdegisbil", "sólarupprás", "dagmál", "morgunmál", 
+        "morgunn", "morgunbil", "morgunleyti", "morgunstund", "nón", "hádegi", "hádegisbil", "hádegisleyti", 
+        "eftirmiðdagur", "eftirmiðdegi", "miðdegisleyti", "miðdegi", "miðdegisbil", "miðdegisstund", "síðdegi", 
+        "síðdegisbil", "síðdegisleyti", "síðdegisstund", "aftann", "aftanbil", "aftanleyti", "dagslok", 
+        "háttumál", "kvöldmatarleyti", "kvöld", "kvöldleyti", "kvöldbil", "kvöldstund", "miðnætti", "miðnæturbil", 
+        "miðnæturleyti", "nótt", "næturleyti", "næturlag", "sólsetur", "ótta", "óttubil", "aðfaranótt", 
+        "klukkan", "eittleyti", "tvöleyti", "þrjúleyti", "fjögurleyti", "fimmleyti", "sexleyti", "sjöleyti", 
+        "áttaleyti", "níuleyti", "tíuleyti", "ellefuleyti", "tólfleyti", "helgi", "vikubyrjun", "vikudagur", 
+        "vikulok", "ársbyrjun", "árslok", "haustdagur", "sumardagur", "vetrardagur", "vordagur", "mánaðamót", 
+        "áramót", "aldamót", "dagpartur", "fyrripartur", "seinnipartur", "mánaðardagur", "sumar", "vetur", "vor", 
+        "haust", "haustmisseri", "vormisseri", "skeið", "tímaskeið", "tímabil", "tíð", "leiktíð", "árstíð", 
+        "leikár", "almanaksár", "rekstrarár", "skólaár", "kjörtímabil", "árabil", "áraskeið", "áratugaskeið" ])
+
 
     _UNDERSTOOD_PUNCTUATION = ".?!,:;–-()[]"
 
@@ -550,7 +595,6 @@ class BIN_Token(Token):
 
     def matches_NUMBER(self, terminal):
         """ A number token matches a number (töl) or noun terminal """
-
         if terminal.startswith("tala"):
             # A 'tala' terminal matches a number regardless of any
             # case and gender variants that it may have. Those are
@@ -646,6 +690,14 @@ class BIN_Token(Token):
         """ A date token matches a date (dags) terminal """
         return terminal.startswith("dags")
 
+    def matches_DATEABS(self, terminal):
+        """ An absolute date token matches an absolute date (dagsföst) terminal """
+        return terminal.startswith("dagsföst")
+
+    def matches_DATEREL(self, terminal):
+        """ A relative date token matches a relative date (dagsafs) terminal """
+        return terminal.startswith("dagsafs")
+
     def matches_TIME(self, terminal):
         """ A time token matches a time (tími) terminal """
         return terminal.startswith("tími")
@@ -653,6 +705,14 @@ class BIN_Token(Token):
     def matches_TIMESTAMP(self, terminal):
         """ A timestamp token matches a timestamp (tímapunktur) terminal """
         return terminal.startswith("tímapunktur")
+
+    def matches_TIMESTAMPABS(self, terminal):
+        """ An absolute timestamp token matches an absolute timestamp (tímapunkturfast) terminal """
+        return terminal.startswith("tímapunkturfast")
+
+    def matches_TIMESTAMPREL(self, terminal):
+        """ A relative timestamp token matches a relative timestamp (tímapunkturafs) terminal """
+        return terminal.startswith("tímapunkturafs")
 
     def matches_ORDINAL(self, terminal):
         """ An ordinal token matches an ordinal (raðnr) terminal """
@@ -718,6 +778,20 @@ class BIN_Token(Token):
                     return False
             return True
 
+        def matcher_tno(m):
+            """ Check temporal words """
+            if BIN_Token.KIND[m.ordfl] != "no":
+                return False
+            for v in terminal.variants:
+                if v in BIN_Token.GENDERS_SET:
+                    if m.ordfl != v:
+                        # Mismatched gender
+                        return False
+                elif BIN_Token.VARIANT[v] not in m.beyging:
+                    # Required case or number not found: no match
+                    return False
+            return m.stofn in BIN_Token._TNO
+
         def matcher_abfn(m):
             """ Check reflexive pronoun (afturbeygt fornafn) """
             if m.ordfl != "abfn":
@@ -747,10 +821,14 @@ class BIN_Token(Token):
             """ Interrogative adverbs, 'spurnaratviksorð' """
             return "ao" in m.ordfl and m.stofn in BIN_Token._SPAO
 
+        def matcher_tao(m):
+            """ Temporal adverbs, 'tímaatviksorð' """
+            return "tao" in m.ordfl or m.stofn in BIN_Token._TAO
+
         def matcher_eo(m):
             """ 'Einkunnarorð': adverb (atviksorð) that is not the same
                 as a preposition (forsetning) or pronoun (fornafn) """
-            if "ao" not in m.ordfl or m.stofn in BIN_Token._SPAO:
+            if "ao" not in m.ordfl or m.stofn in BIN_Token._SPAO or m.stofn in BIN_Token._TAO:
                 return False
             # This token can match an adverb:
             # Cache whether it can also match a preposition
@@ -769,8 +847,8 @@ class BIN_Token(Token):
             return self._is_eo
 
         def matcher_ao(m):
-            """ Adverbs, excluding eo and spao """
-            if "ao" != m.ordfl or matcher_spao(m):
+            """ Adverbs, excluding eo, spao, and tao """
+            if "ao" != m.ordfl or matcher_spao(m) or matcher_tao(m):
                 return False
             fbits = BIN_Token.get_fbits(m.beyging)
             return terminal.fbits_match(fbits)
@@ -910,8 +988,12 @@ class BIN_Token(Token):
         TOK.ORDINAL: matches_ORDINAL,
         TOK.YEAR: matches_YEAR,
         TOK.DATE: matches_DATE,
+        TOK.DATEABS: matches_DATEABS,
+        TOK.DATEREL: matches_DATEREL,
         TOK.TIME: matches_TIME,
         TOK.TIMESTAMP: matches_TIMESTAMP,
+        TOK.TIMESTAMPABS: matches_TIMESTAMPABS,
+        TOK.TIMESTAMPREL: matches_TIMESTAMPREL,
         TOK.WORD: matches_WORD
     }
 

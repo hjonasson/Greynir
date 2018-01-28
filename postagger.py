@@ -187,8 +187,12 @@ class IFD_Tagset:
     KIND_TO_TAG = {
         # !!! TBD: put in more precise tags
         "DATE" : "to",
+        "DATEREL" : "to",
+        "DATEABS" : "to",
         "TIME" : "to",
         "TIMESTAMP" : "to",
+        "TIMESTAMPABS" : "to",
+        "TIMESTAMPREL" : "to",
         "PERCENT" : "tp"
     }
 
@@ -206,11 +210,13 @@ class IFD_Tagset:
         "tala" : "_number",
         "raðnr" : "_raðnr",
         "ártal" : "_year",
+        "tno" : "_n",
         "so" : "_s",
         "lo" : "_l",
         "ao" : "_a",
         "eo" : "_a",
         "spao" : "_a",
+        "tao" : "_a",
         "fs" : "_a",
         "uh" : "_a",
         "st" : "_c",
@@ -355,6 +361,58 @@ class IFD_Tagset:
         "úr" : "þ",
         "út" : "o",
     }
+    
+    # Raðtölur
+    ORDINALS = set([
+        "fyrstur",
+        "annar",
+        "þriðji",
+        "fjórði",
+        "fimmti",
+        "sjötti",
+        "sjöundi",
+        "áttundi",
+        "níundi",
+        "tíundi",
+        "ellefti",
+        "tólfti",
+        "þrettándi",
+        "fjórtándi",
+        "fimmtándi",
+        "sextándi",
+        "sautjándi",
+        "átjándi",
+        "nítjándi",
+        "tuttugasti",
+        "þrítugasti",
+        "fertugasti",
+        "fimmtugasti",
+        "sextugasti",
+        "sjötugasti",
+        "átttugasti",
+        "nítugasti",
+        "hundraðasti",
+        "tvöhundraðasti",
+        "þrjúhundraðasti",
+        "fjögurhundraðasti",
+        "fimmhundraðasti",
+        "sexhundraðasti",
+        "sjöhundraðasti",
+        "áttahundraðasti",
+        "níuhundraðasti",
+        "þúsundasti",
+        "tvöþúsundasti",
+        "þrjúþúsundasti",
+        "fjögurþúsundasti",
+        "fimmþúsundasti",
+        "sexþúsundasti",
+        "sjöþúsundasti",
+        "áttaþúsundasti",
+        "níuþúsundasti",
+        "tíuþúsundasti",
+        "milljónasti",
+        "milljarðasti",
+    ])
 
     def _n(self):
         return "n" + self._kyn() + self._tala() + self._fall() + self._greinir() + self._sérnöfn()
@@ -412,7 +470,9 @@ class IFD_Tagset:
         return "tfkfn" if self._v == 11 or self._v % 10 != 1 else "tfken"
 
     def _raðnr(self):
-        return "lxexsf" # Lýsingarorð, eintala, sterk beyging, frumstig. Kyn og fall óþekkt
+        if self._tagset:
+            return "l"+self._kyn()+"e"+self._fall()+"vf"
+        return "lxexvf" # Lýsingarorð, eintala, veik beyging, frumstig. Kyn og fall óþekkt
 
     def _year(self):
         return "ta"
@@ -476,6 +536,8 @@ class IFD_Tagset:
         if "fsb" in self._tagset or "esb" in self._tagset:
             return "s"
         if "fvb" in self._tagset or "evb" in self._tagset or "mst" in self._tagset:
+            return "v"
+        if self._stem in self.ORDINALS:
             return "v"
         return "o"
 
@@ -1053,8 +1115,8 @@ class NgramTagger:
                 continue
             taglist = self.tag_single_token(t)
             if taglist:
-            #    display = " | ".join("{0} {1:.2f}".format(w, p) for w, p in taglist)
-            #    print("{0:20}: {1}".format(t.txt, display))
+                #display = " | ".join("{0} {1:.2f}".format(w, p) for w, p in taglist)
+                #print("{0:20}: {1}".format(t.txt, display))
                 tagsets.append(taglist)
 
         _, tags = self._most_likely(tagsets)

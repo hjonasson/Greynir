@@ -126,6 +126,97 @@ MONTHS = {
     "desember": 12
 }
 
+# Days of the month spelled out
+DAYS_OF_MONTH = {
+    "fyrsti": 1,
+    "fyrsta": 1,
+    "annar": 2,
+    "annan": 2,
+    "þriðji": 3,
+    "þriðja": 3,
+    "fjórði": 4,
+    "fjórða": 4,
+    "fimmti": 5,
+    "fimmta": 5,
+    "sjötti": 6,
+    "sjötta": 6,
+    "sjöundi": 7,
+    "sjöunda": 7,
+    "áttundi": 8,
+    "áttunda": 8,
+    "níundi": 9,
+    "níunda": 9,
+    "tíundi": 10,
+    "tíunda": 10,
+    "ellefti": 11,
+    "ellefta": 11,
+    "tólfti": 12,
+    "tólfta": 12,
+    "þrettándi": 13,
+    "þrettánda": 13,
+    "fjórtándi": 14,
+    "fjórtánda": 14,
+    "fimmtándi": 15,
+    "fimmtánda": 15,
+    "sextándi": 16,
+    "sextánda": 16,
+    "sautjándi": 17,
+    "sautjánda": 17,
+    "átjándi": 18,
+    "átjánda": 18,
+    "nítjándi": 19,
+    "nítjánda": 19,
+    "tuttugasti": 20,
+    "tuttugasta": 20,
+    "þrítugasti": 30,
+    "þrítugasta": 30,
+}
+
+
+# Time of day expressions spelled out
+CLOCK_NUMBERS = {
+    "eitt": [1,0,0],
+    "tvö": [2,0,0],
+    "þrjú": [3,0,0],
+    "fjögur": [4,0,0],
+    "fimm": [5,0,0],
+    "sex": [6,0,0],
+    "sjö": [7,0,0],
+    "átta": [8,0,0],
+    "níu": [9,0,0],
+    "tíu": [10,0,0],
+    "ellefu": [11,0,0],
+    "tólf": [12,0,0],
+    "hálfeitt": [12,30,0],
+    "hálftvö": [1,30,0],
+    "hálfþrjú": [2,30,0],
+    "hálffjögur": [3,30,0],
+    "hálffimm": [4,30,0],
+    "hálfsex": [5,30,0],
+    "hálfsjö": [6,30,0],
+    "hálfátta": [7,30,0],
+    "hálfníu": [8,30,0],
+    "hálftíu": [9,30,0],
+    "hálfellefu": [10,30,0],
+    "hálftólf": [11,30,0],
+}
+
+# Set of words only possible in temporal phrases
+CLOCK_HALF = frozenset([
+    "hálfeitt", 
+    "hálftvö", 
+    "hálfþrjú", 
+    "hálffjögur",
+    "hálffimm",
+    "hálfsex",
+    "hálfsjö",
+    "hálfátta",
+    "hálfníu",
+    "hálftíu",
+    "hálfellefu",
+    "hálftólf"
+    ])
+
 # Handling of Roman numerals
 
 RE_ROMAN_NUMERAL = re.compile(r"^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
@@ -203,6 +294,10 @@ class TOK:
     EMAIL = 15
     ENTITY = 16
     UNKNOWN = 17
+    DATEABS = 18
+    DATEREL = 19
+    TIMESTAMPABS = 20
+    TIMESTAMPREL = 21
 
     P_BEGIN = 10001 # Paragraph begin
     P_END = 10002 # Paragraph end
@@ -220,7 +315,11 @@ class TOK:
         PUNCTUATION: "PUNCTUATION",
         TIME: "TIME",
         TIMESTAMP: "TIMESTAMP",
+        TIMESTAMPABS: "ABSOLUTE TIMESTAMP",
+        TIMESTAMPREL: "RELATIVE TIMESTAMP",
         DATE: "DATE",
+        DATEABS: "ABSOLUTE DATE",
+        DATEREL: "RELATIVE DATE",
         YEAR: "YEAR",
         NUMBER: "NUMBER",
         CURRENCY: "CURRENCY",
@@ -262,8 +361,24 @@ class TOK:
         return Tok(TOK.DATE, w, (y, m, d))
 
     @staticmethod
+    def Dateabs(w, y, m, d):
+        return Tok(TOK.DATEABS, w, (y, m, d))
+
+    @staticmethod
+    def Daterel(w, y, m, d):
+        return Tok(TOK.DATEREL, w, (y, m, d))
+
+    @staticmethod
     def Timestamp(w, y, mo, d, h, m, s):
         return Tok(TOK.TIMESTAMP, w, (y, mo, d, h, m, s))
+   
+    @staticmethod
+    def Timestampabs(w, y, mo, d, h, m, s):
+        return Tok(TOK.TIMESTAMPABS, w, (y, mo, d, h, m, s))
+  
+    @staticmethod
+    def Timestamprel(w, y, mo, d, h, m, s):
+        return Tok(TOK.TIMESTAMPREL, w, (y, mo, d, h, m, s))
 
     @staticmethod
     def Year(w, n):
@@ -355,7 +470,6 @@ def is_valid_date(y, m, d):
 
 def parse_digits(w):
     """ Parse a raw token starting with a digit """
-
     s = re.match(r'\d{1,2}:\d\d:\d\d', w)
     if s:
         # Looks like a 24-hour clock, H:M:S
@@ -462,7 +576,6 @@ def parse_digits(w):
 
 def parse_tokens(txt):
     """ Generator that parses contiguous text into a stream of tokens """
-
     rough = txt.split()
 
     for w in rough:
@@ -696,6 +809,30 @@ def parse_particles(token_stream):
                             next_token.val[0], next_token.val[1], next_token.val[2])
                     next_token = next(token_stream)
 
+            # Coalesce 'klukkan/kl. átta/hálfátta' into a time
+            if next_token.txt in CLOCK_NUMBERS and (clock or (token.kind == TOK.WORD and token.txt.lower() == CLOCK_WORD)):
+                # Match: coalesce and step to next token
+                token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, *CLOCK_NUMBERS[next_token.txt])
+                next_token = next(token_stream)
+            # Words like 'hálftólf' only used in temporal expressions so can stand alone
+            if token.txt in CLOCK_HALF:
+                token = TOK.Time(token.txt, *CLOCK_NUMBERS[token.txt])
+
+            # Coalesce 'árið' + [year|number] into year
+            if (token.kind == TOK.WORD and (token.txt == "árið" or token.txt == "ársins" or token.txt == "árinu")) and (next_token.kind == TOK.YEAR or next_token.kind == TOK.NUMBER):
+                token = TOK.Year(token.txt + " " + next_token.txt, next_token.txt)
+                next_token = next(token_stream)
+
+            # Coalesce [year|number] + ['e.Kr.'|'f.Kr.'] into year
+            if token.kind == TOK.YEAR or (token.kind == TOK.NUMBER):
+                val = int(token.val) if token.kind == TOK.YEAR else token.val[0] if token.kind == TOK.NUMBER else 0
+                if next_token.txt == "f.Kr":
+                    token = TOK.Year(token.txt + " " + next_token.txt, -int(val))
+                    next_token = next(token_stream)
+                elif next_token.txt == "e.Kr":
+                    token = TOK.Year(token.txt + " " + next_token.txt, val)
+                    next_token = next(token_stream)
+
             # Coalesce percentages into a single token
             if next_token.kind == TOK.PUNCTUATION and next_token.txt == '%':
                 if token.kind == TOK.NUMBER:
@@ -728,6 +865,7 @@ def parse_particles(token_stream):
                         # Continue with the following word
                         next_token = follow_token
 
+
             # Yield the current token and advance to the lookahead
             yield token
             token = next_token
@@ -742,7 +880,6 @@ def parse_sentences(token_stream):
     """ Parse a stream of tokens looking for sentences, i.e. substreams within
         blocks delimited by sentence finishers (periods, question marks,
         exclamation marks, etc.) """
-
     in_sentence = False
     token = None
     tok_begin_sentence = TOK.Begin_Sentence()
@@ -809,7 +946,6 @@ def annotate(token_stream, auto_uppercase):
     """ Look up word forms in the BIN word database. If auto_uppercase
         is True, change lower case words to uppercase if it looks likely
         that they should be uppercase. """
-
     at_sentence_start = False
 
     with BIN_Db.get_db() as db:
@@ -988,7 +1124,11 @@ AMOUNT_ABBREV = {
     "þús.kr.": 1e3,
     "m.kr.": 1e6,
     "mkr.": 1e6,
-    "ma.kr.": 1e9
+    "millj.kr.": 1e6,
+    "mljó.kr.": 1e6,
+    "ma.kr.": 1e9,
+    "mö.kr.": 1e9,
+    "mlja.kr.": 1e9
 }
 
 # Number words can be marked as subjects (any gender) or as numbers
@@ -1089,7 +1229,6 @@ def parse_phrases_1(token_stream):
     """ Parse a stream of tokens looking for phrases and making substitutions.
         First pass
     """
-
     with BIN_Db.get_db() as db:
 
         token = None
@@ -1170,38 +1309,71 @@ def parse_phrases_1(token_stream):
                             break
 
                     multiplier = None
-
+                # DATEABS and DATEREL made
                 # Check for [number | ordinal] [month name]
-                if (token.kind == TOK.ORDINAL or token.kind == TOK.NUMBER) and next_token.kind == TOK.WORD:
-
+                if (token.kind == TOK.ORDINAL or token.kind == TOK.NUMBER or token.txt in DAYS_OF_MONTH) and next_token.kind == TOK.WORD:
                     month = match_stem_list(next_token, MONTHS)
                     if month is not None:
                         token = TOK.Date(token.txt + " " + next_token.txt, y = 0, m = month,
-                            d = token.val if token.kind == TOK.ORDINAL else token.val[0])
+                            d = token.val if token.kind == TOK.ORDINAL else token.val[0] if token.kind == TOK.ORDINAL else DAYS_OF_MONTH[token.txt])
                         # Eat the month name token
                         next_token = next(token_stream)
 
-                # Check for [date] [year]
-                if token.kind == TOK.DATE and next_token.kind == TOK.YEAR:
-
+                # Check for [DATE] [year]
+                if token.kind == TOK.DATE and (next_token.kind == TOK.NUMBER or next_token.kind == TOK.YEAR):
                     if not token.val[0]:
                         # No year yet: add it
+                        year = next_token.val if next_token.kind == TOK.YEAR else int(next_token.txt) if 1776 <= int(next_token.txt) <= 2100 else 0
                         token = TOK.Date(token.txt + " " + next_token.txt,
-                            y = next_token.val, m = token.val[1], d = token.val[2])
+                            y = year, m = token.val[1], d = token.val[2])
                         # Eat the year token
                         next_token = next(token_stream)
 
-                # Check for [date] [time]
-                if token.kind == TOK.DATE and next_token.kind == TOK.TIME:
+                # Check for [month name] [year|YEAR]
+                if token.kind == TOK.WORD and (next_token.kind == TOK.NUMBER or next_token.kind == TOK.YEAR):
+                    month = match_stem_list(token, MONTHS)
+                    if month is not None:
+                        year = next_token.val if next_token.kind == TOK.YEAR else int(next_token.txt) if 1776 <= int(next_token.txt) <= 2100 else 0
+                        token = TOK.Date(token.txt + " " + next_token.txt, y = year, m = month, d = 0)
+                        # Eat the year token
+                        next_token = next(token_stream)
 
-                    # Create a time stamp
+                # Check for a single YEAR, change to DATEREL -- changed to keep distinction
+                #if token.kind == TOK.YEAR:
+                #    token = TOK.Daterel(token.txt, y = token.val, m = 0, d = 0)
+
+                # Check for a single month, change to DATEREL
+                if token.kind == TOK.WORD:
+                    month = match_stem_list(token, MONTHS)
+                    if month is not None:
+                        token = TOK.Daterel(token.txt, y = 0, m = month, d = 0)
+
+                # Split DATE into DATEABS and DATEREL
+                if token.kind == TOK.DATE:
+                    if token.val[0] and token.val[1] and token.val[2]:
+                        token = TOK.Dateabs(token.txt, y = token.val[0], m = token.val[1], d = token.val[2])
+                    else:
+                        token = TOK.Daterel(token.txt, y = token.val[0], m = token.val[1], d = token.val[2])
+
+                # Check for [date] [time] (absolute)
+                if token.kind == TOK.DATEABS and next_token.kind == TOK.TIME:
+                    # Create an absolute time stamp
                     y, mo, d = token.val
                     h, m, s = next_token.val
-                    token = TOK.Timestamp(token.txt + " " + next_token.txt,
+                    token = TOK.Timestampabs(token.txt + " " + next_token.txt,
                         y = y, mo = mo, d = d, h = h, m = m, s = s)
                     # Eat the time token
                     next_token = next(token_stream)
-
+                # Check for [date] [time] (relative)
+                if token.kind == TOK.DATEREL and next_token.kind == TOK.TIME:
+                    # Create a time stamp
+                    y, mo, d = token.val
+                    h, m, s = next_token.val
+                    token = TOK.Timestamprel(token.txt + " " + next_token.txt,
+                        y = y, mo = mo, d = d, h = h, m = m, s = s)
+                    # Eat the time token
+                    next_token = next(token_stream)
+                
                 # Check for currency name doublets, for example
                 # 'danish krona' or 'british pound'
                 if token.kind == TOK.WORD and next_token.kind == TOK.WORD:
@@ -1286,13 +1458,11 @@ def parse_phrases_2(token_stream):
     """ Parse a stream of tokens looking for phrases and making substitutions.
         Second pass
     """
-
     token = None
     try:
 
         # Maintain a one-token lookahead
         token = next(token_stream)
-
         # Maintain a set of full person names encountered
         names = set()
 
@@ -1343,6 +1513,26 @@ def parse_phrases_2(token_stream):
                         cur, token.val[0], cases, genders)
                     # Eat the currency token
                     next_token = next(token_stream)
+
+            # Check for [time] [date] (absolute)
+            if token.kind == TOK.TIME and next_token.kind == TOK.DATEABS:
+                # Create a time stamp
+                h, m, s = token.val
+                y, mo, d = next_token.val
+                token = TOK.Timestampabs(token.txt + " " + next_token.txt,
+                    y = y, mo = mo, d = d, h = h, m = m, s = s)
+                # Eat the time token
+                next_token = next(token_stream)
+
+            # Check for [time] [date] (relative)
+            if token.kind == TOK.TIME and next_token.kind == TOK.DATEREL:
+                # Create a time stamp
+                h, m, s = token.val
+                y, mo, d = next_token.val
+                token = TOK.Timestamprel(token.txt + " " + next_token.txt,
+                    y = y, mo = mo, d = d, h = h, m = m, s = s)
+                # Eat the time token
+                next_token = next(token_stream)
 
             # Logic for human names
 
@@ -1715,7 +1905,6 @@ def disambiguate_phrases(token_stream):
         The algorithm implements N-token lookahead where N is the
         length of the longest phrase.
     """
-
     tq = [] # Token queue
     state = defaultdict(list) # Phrases we're considering
     pdict = AmbigPhrases.DICT # The phrase dictionary
@@ -1802,7 +1991,6 @@ def disambiguate_phrases(token_stream):
     except StopIteration:
         # Token stream is exhausted
         pass
-
     # Yield any tokens remaining in queue
     for t in tq: yield t
 
@@ -1813,7 +2001,6 @@ def recognize_entities(token_stream, enclosing_session = None):
         The algorithm implements N-token lookahead where N is the
         length of the longest entity name having a particular initial word.
     """
-
     tq = [] # Token queue
     state = defaultdict(list) # Phrases we're considering
     ecache = dict() # Entitiy definition cache
@@ -2023,13 +2210,12 @@ def recognize_entities(token_stream, enclosing_session = None):
 
 def raw_tokenize(text):
     """ Tokenize text up to but not including the BÍN annotation pass """
-
     token_stream = parse_tokens(text)
-
+    st = token_stream
     token_stream = parse_particles(token_stream)
-
+    st = token_stream
     token_stream = parse_sentences(token_stream)
-
+    st = token_stream
     return token_stream
 
 
@@ -2039,27 +2225,32 @@ def tokenize(text, auto_uppercase = False, enclosing_session = None):
         attempts to correct lowercase words that probably should be uppercase. """
 
     # Thank you Python for enabling this programming pattern ;-)
-
     token_stream = raw_tokenize(text)
+    st = token_stream
 
     # Static multiword phrases
     token_stream = parse_static_phrases(token_stream, auto_uppercase)
+    st = token_stream
 
     # Lookup meanings from dictionary
     token_stream = annotate(token_stream, auto_uppercase)
+    st = token_stream
 
     # First phrase pass
     token_stream = parse_phrases_1(token_stream)
+    st = token_stream
 
     # Second phrase pass
     token_stream = parse_phrases_2(token_stream)
+    st = token_stream
 
     # Recognize named entities from database
     token_stream = recognize_entities(token_stream, enclosing_session)
+    st = token_stream
 
      # Eliminate very uncommon meanings
     token_stream = disambiguate_phrases(token_stream)
-
+    st = token_stream
     return token_stream
 
 
@@ -2069,7 +2260,6 @@ def paragraphs(toklist):
         of the sentence (the TOK.S_BEGIN token) and a list of the tokens within the
         sentence, not including the starting TOK.S_BEGIN or the terminating TOK.S_END
         tokens. """
-
     def valid_sent(sent):
         """ Return True if the token list in sent is a proper
             sentence that we want to process further """
@@ -2162,9 +2352,19 @@ def canonicalize_token(t):
             t["v"] = val[0]
         elif kind == TOK.DATE:
             t["v"] = dict(y = val[0], mo = val[1], d = val[2])
+        elif kind == TOK.DATEABS:
+            t["v"] = dict(y = val[0], mo = val[1], d = val[2])
+        elif kind == TOK.DATEREL:
+            t["v"] = dict(y = val[0], mo = val[1], d = val[2])
         elif kind == TOK.TIME:
             t["v"] = dict(h = val[0], m = val[1], s = val[2])
         elif kind == TOK.TIMESTAMP:
+            t["v"] = dict(y = val[0], mo = val[1], d = val[2],
+                h = val[3], m = val[4], s = val[5])
+        elif kind == TOK.TIMESTAMPABS:
+            t["v"] = dict(y = val[0], mo = val[1], d = val[2],
+                h = val[3], m = val[4], s = val[5])
+        elif kind == TOK.TIMESTAMPREL:
             t["v"] = dict(y = val[0], mo = val[1], d = val[2],
                 h = val[3], m = val[4], s = val[5])
         elif kind == TOK.PERSON:

@@ -128,6 +128,11 @@ _DEFAULT_NT_MAP = {
     "Skýringarsetning" : "S-THT",
     "Spurnaraukasetning" : "S-QUE",
     "Spurnarsetning" : "S-QUE",
+    
+    "BeygingarliðurÁnF" : "IP",
+    "BeygingarliðurÁnUmröðunar" : "IP",
+    "BeygingarliðurMeðUmröðun" : "IP",
+
     "Nl" : "NP",
     "EfLiður" : "NP-POSS",
     "EfLiðurForskeyti" : "NP-POSS",
@@ -161,9 +166,20 @@ _DEFAULT_NT_MAP = {
     "SagnHluti" : "VP-SEQ",
     "SagnliðurVh" : "VP",
     "LoTengtSögn" : "ADJP",
-    "BeygingarliðurÁnF" : "IP",
-    "BeygingarliðurÁnUmröðunar" : "IP",
-    "BeygingarliðurMeðUmröðun" : "IP",
+
+    # Tímaliðir - nýir
+    "Tímanafnliður" : "NP-TMP",
+    #"Tímaeining" : "NP-TMP",
+    "TímaSbr" : "ADVP-TMP",
+    "TímaAtviksEinkunn" : "ADVP",
+    "TímaAtviksliður" : "ADVP-TMP",
+    "TímaLo" : "ADJP",
+    "TímaFn" : "ADJP",
+    "RaðtalaLo" : "ADJP",
+    "Raðnafnliður" : "NP-TMP",
+    "Tímatala" : "ADJP",
+    "AllurÞessi" : "ADJP",
+
 }
 
 # subject_to: don't push an instance of this if the
@@ -208,10 +224,12 @@ _DEFAULT_ID_MAP = {
     "NP-OBJ" : dict(name = "Beint andlag"),
     "NP-IOBJ" : dict(name = "Óbeint andlag"),
     "NP-PRD" : dict(name = "Sagnfylling"),
+    "NP-TMP" : dict(name = "Tímanafnliður"), 
     "ADVP" : dict(name = "Atviksliður",
         subject_to = { "ADVP" }),
     "ADVP-DATE" : dict(name = "Tímasetning", overrides = "ADVP",
         subject_to = { "ADVP-DATE" }),
+    "ADVP-TMP" : dict(name = "Tímaatviksliður"),
     "PP" : dict(name = "Forsetningarliður", overrides = "ADVP"),
     "ADJP" : dict(name = "Lýsingarliður",
         subject_to = { "ADJP" }),
