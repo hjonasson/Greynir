@@ -121,12 +121,16 @@ Tímaliður →
     | Tímabil
 $score(+8) Tímaliður
 
-# Föst dagsetning
+# Aðalliður: Föst dagsetning
 FöstDagsetning → 
     Vikudagur/fall/tala? dagsföst
     | HinnSá/fall dagsföst
     | DaganaFast/fall
-# Afstæð dagsetning 
+DaganaFast/fall →
+    'dagur:kk'_ft_gr/fall? dagsafs 'og:st' dagsföst     # (dagana) 13. október og 14. nóvember 2017
+    | 'dagur:kk'_ft/fall? raðnr 'og:st' dagsföst        # (dagana) 13. og 14. nóvember 2017
+
+# Aðalliður: Afstæð dagsetning 
 AfstæðDagsetning →
     ÓfullkominDagsetning
     | 'í:fs'_þf Árstíð_þf_et            # í haust, í sumar
@@ -145,7 +149,6 @@ AfstæðDagsetning →
     | "í_hitteðfyrra:tao"
     | "í_hittiðfyrra:tao"
     | VísiDagsetning                                # á föstudag, um helgina, á morgun, í gær
-
 ÓfullkominDagsetning →
     Vikudagur/fall/tala? dagsafs NæstSíðast/fall/tala/kyn?
     | HinnSá/fall dagsafs NæstSíðast/fall/tala/kyn?         # hinn/þann 14. nóvember sl.
@@ -156,7 +159,6 @@ AfstæðDagsetning →
     | DaganaÁrinAfs/fall                                    # dagana 14. og 15. október, árin 1938 og 1967
     | TímaÁkvæðisliður_þf_et/kyn Vikudagur_et/fall          # næsta fimmtudag
     | TímaÁkvæðisliður_þf_et/kyn Árstíð_et/fall             # það sama haust, næsta vor
-
 VísiDagsetning → 
     'á:fs'_þf Vikudagur_et_þf           # á föstudag
     | 'um:fs'_þf 'helgi:kvk'_þf_et_gr   # um helgina
@@ -166,12 +168,63 @@ VísiDagsetning →
     | "í_fyrradag:tao"                  # í fyrradag
     | 'í:fs'_þf 'fyrri:lo'_þf_et_mst    # í fyrra
     | 'dagur:kk'_þf_et_gr 'eftir:ao'    # daginn eftir
-# Fastur tímapunktur 
+Mánuður_et/fall → 
+    'janúarmánuður:kk'/fall
+    | 'febrúarmánuður:kk'/fall
+    | 'marsmánuður:kk'/fall
+    | 'aprílmánuður:kk'/fall
+    | 'maímánuður:kk'/fall
+    | 'júnímánuður:kk'/fall
+    | 'júlímánuður:kk'/fall
+    | 'ágústmánuður:kk'/fall
+    | 'septembermánuður:kk'/fall
+    | 'októbermánuður:kk'/fall
+    | 'nóvembermánuður:kk'/fall
+    | 'desembermánuður:kk'/fall
+    | "jan."
+    | "feb."
+    | "mar."
+    | "apr."
+    | "jún."
+    | "júl."
+    | "ág."
+    | "ágú."
+    | "sep."
+    | "sept."
+    | "okt."
+    | "nóv."
+    | "des."
+DaganaÁrinAfs/fall →
+    'dagur:kk'_ft/fall? dagsafs 'og:st' dagsafs         # (dagana) 13. október og 14. nóvember
+    | 'dagur:kk'_ft/fall? raðnr 'og:st' dagsafs         # (dagana) 13. og 14. nóvember 
+    | 'ár:hk'_ft_gr/fall? ártal 'og:st' ártal           # árin 2016-2017, árin 2016 til 2017
+    | 'ár:hk'_ft_gr/fall ártal 'og:st' tala             # árin 2016-17
+Mánaðamót/fall →
+    'mánaðamót:hk'_ft/fall? dagsafs '-:en' dagsafs/fall
+Árstíð/tala/fall →  Árstíð/fall/tala
+Árstíð/fall/tala →
+    'vor:hk'/fall/tala
+    | 'sumar:hk'/fall/tala
+    | 'haust:hk'/fall/tala
+    | 'vetur:kk'/fall/tala
+# Bara AfstæðDagsetning -- aðrir svipaðir liðir fara í aðrar reglur (í viku (Tímabil), á ári (Tíðni), í mánuð (Tímabil), ...)
+# á árinu, í vikunni, í mánuðinum
+AfstæðDagsetningFs → 
+    'á:fs'_þgf 'ár:hk'_þgf_et_gr                                # á árinu
+    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_hk 'ár:hk'_þgf_et      # á næsta ári
+    | 'í:fs'_þgf 'mánuður:kk'_þgf_et_gr                         # í mánuðinum
+    | 'í:fs'_þgf TímaÁkvæðisliður_þgf_et_kk 'mánuður:kk'_þgf_et # í síðasta mánuði
+    | 'í:fs'_þgf 'vika:kvk'_þgf_et_gr                           # í vikunni
+    | 'í:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'vika:kvk'_þgf_et # í sömu viku
+    | 'í:fs'_þf Árstíð_þf_et                                    # í haust, í vetur, í vor, í sumar
+
+# Aðalliður: Fastur tímapunktur 
 FasturTímapunktur →
     tímapunkturfast                             # TIMESTAMPABS: 14. nóvember 2017 kl. 14:35
     | 'áramót:hk'_ft/fall? ártal '-:en' ártal   # (áramótin) 2016-2017
     | 'áramót:hk'_ft/fall? ártal '-:en' tala    # (áramótin) 2016-17
-# Afstæður tímapunktur 
+
+# Aðalliður: Afstæður tímapunktur 
 AfstæðurTímapunktur →
     ÓfullkominnTímapunktur      # Timestamp, underspecified
     | FasturTími                # Time, absolute
@@ -203,126 +256,42 @@ AfstæðurTími →
     | ParturHluti/fall/tala Vikudagur_ef_et
     | 'aðfaranótt:kvk'_et/fall AfstæðDagsetning
     | 'aðfaranótt:kvk'_et/fall Vikudagur_ef_et
+    | TímaVísiNafnliðurMinni_þf_et/kyn                               # sömu mínútu, sama klukkutíma
     | FyrrSíðar? TímaÁkvæðisliður_þf_et/kyn MorgunnKvöld_þf_et/kyn   # sama kvöld, fyrr sama morgun
     | FyrrSíðar? AfstæðurTímiFs
 
-# Tíðni
-Tíðni →
-    "að_jafnaði:tao"
-    | "ótt_og_títt:tao"
-    | "sí_og_æ:tao"
-    | 'aldrei:ao'
-    | 'alltaf:ao'
-    | 'árlega:ao'
-    | 'daglega:ao'
-    | 'dagsdaglega:ao'
-    | 'mánaðarlega:ao'
-    | 'oft:ao'
-    | 'reglulega:ao'
-    | 'sjaldan:ao'
-    | 'stundum:ao'
-    | 'títt:ao'
-    | 'vikulega:ao'
-# Tímabil
-Tímabil →
-    FastTímabil
-    | AfstættTímabil
-    | TímabilTími
-FastTímabil →
-    DaganaTímabilFast/fall
-    | PunkturFs/fall FasturPunkturTNL/fall
-    | 'milli:fs'_ef FasturPunkturTNL/fall 'og:st' FasturPunkturTNL/fall
-    | 'frá:fs'_þgf FasturPunkturTNL/fall 'til:fs'_ef FasturPunkturTNL/fall
-    | 'milli:fs'_ef TímiPunkturTNL/fall 'og:st' tímapunkturfast     # milli kl. 14:00 og 17:00 14. nóvember 2017
-
-AfstættTímabil → 
-    DaganaTímabilAfstætt/fall
-    | ÁrinTímabilAfstætt/fall
-    | TímaNafnliðurStærri/fall/tala/kyn                     # rúmlega 8 vikur
-    | TímaÁkvæðisliður/fall/tala/kyn? Tímatala/fall/tala/kyn? 
-        TímaNafnorðStærri/fall/tala/kyn                     # næstu 8 daga
-    | FráTilTími VísiDagsetning
-    | VísiDagsetning FráTilTími
-    | MagnFs/fall TímaMagnNafnliðurStærri/fall/tala/kyn     # á 20 dögum, innan 6 daga, í 30 ár
-    | 'út:fs'_þf TímaMagnNafnliðurStærri_þf/tala/kyn        # út árið
-    | 'út:fs'_þf ártal
-    | 'yfir:fs'_þf TímaMagnNafnliðurStærri_þf/tala/kyn      # yfir mánuðinn
-    | PunkturFs/fall AfsPunkturTNL/fall
-    | 'milli:fs'_ef AfsPunkturTNL/fall 'og:st' AfsPunkturTNL/fall
-    | 'frá:fs'_þgf AfsPunkturTNL/fall 'til:fs'_ef AfsPunkturTNL/fall
-    | 'milli:fs'_ef FasturPunkturTNL/fall 'og:st' AfsPunkturTNL/fall
-    | 'frá:fs'_þgf FasturPunkturTNL/fall 'til:fs'_ef AfsPunkturTNL/fall
-    | 'milli:fs'_ef AfsPunkturTNL/fall 'og:st' FasturPunkturTNL/fall
-    | 'frá:fs'_þgf AfsPunkturTNL/fall 'til:fs'_ef FasturPunkturTNL/fall
-    | 'milli:fs'_ef TímiPunkturTNL/fall 'og:st' tímapunkturafs
-    | TímaNafnorðStærri_þf/tala/kyn ÁðurEftir
-
-TímabilTími →
-    FráTilTími 
-    | TímaNafnliðurMinni/fall/tala/kyn                      # um það bil tæpar 10 sekúndur
-    | TímaÁkvæðisliður/fall/tala/kyn? Tímatala/fall/tala/kyn? 
-        TímaNafnorðMinni/fall/tala/kyn                      # næstu 8 mínútur
-    | MagnFs/fall TímaMagnNafnliðurMinni/fall/tala/kyn      # á 20 sekúndum, innan 6 sekúndna, í 30 millisekúndur
-    | PunkturFs/fall TímiPunkturTNL/fall                    # eftir kl. 14:00
-    | 'milli:fs'_ef TímiPunkturTNL/fall 'og:st' TímiPunkturTNL/fall
-    | 'frá:fs'_þgf TímiPunkturTNL/fall 'til:fs'_ef TímiPunkturTNL/fall
-    | TímaNafnorðMinni_þf/tala/kyn ÁðurEftir
-
-# Forsetningar sem standa með TNL sem sýnir magn - 20 sekúndur, 30 ár
-MagnFs/fall →
-    'á:fs'_þgf
-    | 'innan:fs'_ef
-    | 'í:fs'_þf
-
-# Forsetningar sem standa með TNL sem sýna fastan punkt - 14. nóvember 2016, kl. 14:00
-PunkturFs/fall →
-    'fyrir:fs'_þf       # Ath. að með þgf táknar það dagsetningu/tíma.
-    | 'eftir:fs'_þf
-    | 'frá:fs'_þgf OgMeð?
-    | 'til:fs'_ef OgMeð?
-    | 'síðan:fs'_þf
-
-# Dagsetningar/tímapunktar sem ganga innan FL til að tákna tímabil
-AfsPunkturTNL/fall → 
-    ÓfullkominDagsetning
-    | ÓfullkominnTímapunktur
-    | Vikudagur/fall/tala tími?
-FasturPunkturTNL/fall →
-    FöstDagsetning
-    | FasturTímapunktur
-TímiPunkturTNL/fall →
-    FasturTími
-    | ÓfullkominnTími
-DaganaTímabilAfstætt/fall →
-    'dagur:kk'_ft/fall? dagsafs Til dagsafs     # (dagana) 13. október til 14. nóvember
-    | 'dagur:kk'_ft/fall? raðnr Til dagsafs     # (dagana) 13. og 14. nóvember
-ÁrinTímabilAfstætt/fall →
-    'ár:hk'_ft_gr/fall? ártal Til ártal         # árin 2016-2017, árin 2016 til 2017
-    | 'ár:hk'_ft_gr/fall ártal Til tala         # árin 2016-17
-DaganaTímabilFast/fall →
-    'dagur:kk'_ft/fall? dagsafs Til dagsföst    # (dagana) 13. október til 14. nóvember 2017; 13. október-14. nóvember 2017
-    | 'dagur:kk'_ft/fall? raðnr Til dagsföst    # (dagana) 13.-14. nóvember 2017, 13. til 14. nóvember 2017
-FráTilTími → 
-    'frá:fs'_þgf? tími Til tími DaganaTímabilAfstætt/fall?
-    | 'frá:fs'_þgf? tími Til tími DaganaTímabilFast/fall?   
-    | 'frá:fs'_þgf? tími Til tímapunkturfast                # kl. 14:00-17:00 14. nóvember 2017
-    | 'frá:fs'_þgf? tími Til tímapunkturafs                 # kl. 14:00-17:00 14. nóvember
-    | 'frá:fs'_þgf? tími Til tími HinnSá_þf? dagsföst       # kl. 14:00 til 17:00 hinn 14. nóvember 2017
-    | 'frá:fs'_þgf? tími Til tími HinnSá_þf? dagsafs        # kl. 14:00 til 17:00 þann 14. nóvember
-
-ÁðurEftir →
-    'áður:ao'
-    | 'eftir:ao'
-    | "á_undan:ao"
-    | "á_eftir:ao"
-
-Til →
-    'til:fs'
-    | '-:en'
-
-OgMeð → 'og:st' 'með:fs'_þgf    # (frá) og með, (til) og með
-
-# Annað
+ÁTímanum → 
+    'á:fs'_þgf RaðKlukkuTala_þgf_et_kk 'tími:kk'_þgf_et_gr  # Á sjötta tímanum
+RaðKlukkuTala/fall/tala/kyn →
+    'fyrstur:lo'/fall/tala/kyn
+    | 'annar:lo'/fall/tala/kyn
+    | 'þriðji:lo'/fall/tala/kyn
+    | 'fjórði:lo'/fall/tala/kyn
+    | 'fimmti:lo'/fall/tala/kyn
+    | 'sjötti:lo'/fall/tala/kyn
+    | 'sjöundi:lo'/fall/tala/kyn
+    | 'áttundi:lo'/fall/tala/kyn
+    | 'níundi:lo'/fall/tala/kyn
+    | 'tíundi:lo'/fall/tala/kyn
+    | 'ellefti:lo'/fall/tala/kyn
+    | 'tólfti:lo'/fall/tala/kyn
+ParturHluti/fall/tala →
+    'fyrripartur:kk'/fall/tala
+    | 'seinnipartur:kk'/fall/tala
+    | 'fyrri'_kk/fall/tala 'hluti:kk'/fall/tala/kyn
+    | 'seinni'_kk/fall/tala 'hluti:kk'/fall/tala/kyn
+    | 'fyrri'_kk/fall/tala 'helmingur:kk'/fall/tala/kyn
+    | 'seinni'_kk/fall/tala 'helmingur:kk'/fall/tala/kyn
+MorgunnKvöld/fall/tala/kyn →
+    'morgunn:kk'/fall/tala
+    | 'kvöld:hk'/fall/tala
+AfstæðurTímiFs →
+    'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'sekúnda:kvk'_þgf_et         # á sömu sekúndu
+    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'mínúta:kvk'_þgf_et        # á næstu mínútu
+    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_hk 'kortér:hk'_þgf_et          # á sama kortéri
+    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_hk 'korter:hk'_þgf_et          # á næsta korteri
+    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'klukkustund:kvk'_þgf_et   # á síðustu klukkustund
+    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kk 'klukkutími:kk'_þgf_et      # á sama klukkutíma
 Mínútur →
     Mínútutala/fall/tala 'mínúta:kvk'/fall/tala
     | 'korter:hk'/fall/tala
@@ -338,7 +307,6 @@ Mínútutala/fall/tala →
     | 'átján:töl'
     | 'nítján:töl'
     | 'tuttugu:töl'
-
 # Útskrifaðar tölur til að tákna tímasetningu
 Klukkutala/fall/tala → 
     'einn:to'_et_hk/fall        # eitt
@@ -353,97 +321,9 @@ Klukkutala/fall/tala →
     | 'tíu:töl'
     | 'ellefu:töl'
     | 'tólf:töl'
-
-Vikudagur/tala/fall → Vikudagur/fall/tala
-Vikudagur/fall/tala →
-    'sunnudagur:kk'/fall/tala
-    | 'mánudagur:kk'/fall/tala
-    | 'þriðjudagur:kk'/fall/tala
-    | 'miðvikudagur:kk'/fall/tala
-    | 'fimmtudagur:kk'/fall/tala
-    | 'föstudagur:kk'/fall/tala
-    | 'laugardagur:kk'/fall/tala
-    | 'sunnudagur:kk'/fall/tala
-    #| "mán."                     # 'mán.' er ekki í Abbrev.conf eins og er, rekst á mán. fyrir mánuður.
-    | "þri."
-    #| "mið."                     # 'mið.' er ekki inni í Abbrev.conf eins og er, rekst á 'mið' aftast í setningu.
-    | "fim."
-    | "fös."
-    | "lau."
-    | "sun."
-    | "mánud."
-    | "þriðjud."
-    | "miðvikud."
-    | "fimmtud."
-    | "föstud."
-    | "laugard."
-    | "sunnud."
-HinnSá/fall →
-    'sá:fn'_et_kk/fall
-    | 'hinn:gr'_et_kk/fall
 YfirÍ/fall →
     'yfir:fs'_þf
     | 'í:fs'_þf
-Tala/fall/tala/kyn →
-    tala/fall/tala/kyn
-    | töl/fall/tala/kyn
-    | to/fall/tala/kyn
-ÁðurSíðarSeinna →
-    'áður:ao' 
-    | 'síðar:ao'
-    | 'seint:ao'_mst
-    | 'snemma:ao'_mst # fyrr
-# Tímaeiningar sem eru minni en dagur
-TímaNafnorðMinni/fall/tala/kyn →
-    'nanósekúnda:kvk'/fall/tala/kyn
-    | 'míkrósekúnda:kvk'/fall/tala/kyn
-    | 'millisekúnda:kvk'/fall/tala/kyn
-    | 'sekúndubrot:hk'/fall/tala/kyn
-    | 'sekúnda:kvk'/fall/tala/kyn
-    | 'sek.'
-    | 'mínúta:kvk'/fall/tala/kyn
-    | 'mín.'
-    | 'korter:hk'/fall/tala/kyn
-    | 'kortér:hk'/fall/tala/kyn
-    | 'stundarfjórðungur:kk'/fall/tala/kyn
-    | 'hálftími:kk'/fall/tala/kyn
-    | 'klukkustund:kvk'/fall/tala/kyn
-    | 'klukkutími:kk'/fall/tala/kyn
-    | 'klst.'
-# Tímaeiningar sem eru stærri en dagur
-TímaNafnorðStærri/fall/tala/kyn →
-    'dagur:kk'/fall/tala/kyn
-    | 'sólarhringur:kk'/fall/tala/kyn
-    | 'vika:kvk'/fall/tala/kyn
-    | 'mánuður:kk'/fall/tala/kyn
-    | 'ársfjórðungur:kk'/fall/tala/kyn
-    | 'önn:kvk'/fall/tala/kyn
-    | 'misseri:hk'/fall/tala/kyn
-    | 'ár:hk'/fall/tala/kyn
-    | 'áratugur:kk'/fall/tala/kyn
-    | 'árhundrað:hk'/fall/tala/kyn
-    | 'aldarfjórðungur:kk'/fall/tala/kyn
-    | 'öld:kvk'/fall/tala/kyn
-    | 'árþúsund:hk'/fall/tala/kyn
-    | 'þúsöld:kvk'/fall/tala/kyn
-
-ÁTímanum → 
-    'á:fs'_þgf RaðKlukkuTala_þgf_et_kk 'tími:kk'_þgf_et_gr  # Á sjötta tímanum
-
-RaðKlukkuTala/fall/tala/kyn →
-    'fyrstur:lo'/fall/tala/kyn
-    | 'annar:lo'/fall/tala/kyn
-    | 'þriðji:lo'/fall/tala/kyn
-    | 'fjórði:lo'/fall/tala/kyn
-    | 'fimmti:lo'/fall/tala/kyn
-    | 'sjötti:lo'/fall/tala/kyn
-    | 'sjöundi:lo'/fall/tala/kyn
-    | 'áttundi:lo'/fall/tala/kyn
-    | 'níundi:lo'/fall/tala/kyn
-    | 'tíundi:lo'/fall/tala/kyn
-    | 'ellefti:lo'/fall/tala/kyn
-    | 'tólfti:lo'/fall/tala/kyn
-
 # Liðir sem geta staðið einir og sér en eru minni eining en dagur.
 Dagspartur →
     'árdegis:ao'
@@ -478,36 +358,9 @@ Lag/fall →
     'næturlag:hk'/fall
     | 'morgunlag:hk'/fall
     | 'kvöldlag:hk'/fall
-ÍByrjunLok →
-    'í:fs'_þgf 'byrjun:kvk'_þgf
-    | 'í:fs'_þf 'lok:hk'_ft_þf
-    | 'undir:fs'_þf 'lok:hk'_ft_þf
 KvöldNótt/fall → 
     'kvöld:hk'_et/fall
     | 'nótt:kvk'_et/fall
-Vikudagur/fall/tala →
-    'sunnudagur'/fall/tala/kyn
-    | 'mánudagur'/fall/tala/kyn
-    | 'þriðjudagur'/fall/tala/kyn
-    | 'miðvikudagur'/fall/tala/kyn
-    | 'fimmtudagur'/fall/tala/kyn
-    | 'föstudagur'/fall/tala/kyn
-    | 'laugardagur'/fall/tala/kyn
-    | 'sunnudagur'/fall/tala/kyn
-    #| "mán."                   # 'mán.' er ekki í Abbrev.conf eins og er, rekst á mán. fyrir mánuður.
-    | "þri."
-    #| "mið."                     # 'mið.' er ekki inni í Abbrev.conf eins og er, rekst á 'mið' aftast í setningu.
-    | "fim."
-    | "fös."
-    | "lau."
-    | "sun."
-    | "mánud."
-    | "þriðjud."
-    | "miðvikud."
-    | "fimmtud."
-    | "föstud."
-    | "laugard."
-    | "sunnud."
 VikuMorgunnKvöld/tala/fall → VikuMorgunnKvöld/fall/tala
 VikuMorgunnKvöld/fall/tala →
     'mánudagsmorgunn:kk'/fall/tala
@@ -524,10 +377,6 @@ VikuMorgunnKvöld/fall/tala →
     | 'laugardagskvöld:hk'/fall/tala
     | 'sunnudagsmorgunn:kk'/fall/tala
     | 'sunnudagskvöld:hk'/fall/tala
-MorgunnKvöld/fall/tala/kyn →
-    'morgunn:kk'/fall/tala
-    | 'kvöld:hk'/fall/tala
-
 # Safn tímanafnorða sem geta staðið í FL með 'um' og tákna einingu sem er minni en dagur.
 UmTNO/fall →
     'aftann:kk'/fall
@@ -555,67 +404,164 @@ UmTNO/fall →
     | 'síðdegi:hk'/fall
     | 'síðdegisbil:hk'/fall
 
-ParturHluti/fall/tala →
-    'fyrripartur:kk'/fall/tala
-    | 'seinnipartur:kk'/fall/tala
-    | 'fyrri'_kk/fall/tala 'hluti:kk'/fall/tala/kyn
-    | 'seinni'_kk/fall/tala 'hluti:kk'/fall/tala/kyn
-    | 'fyrri'_kk/fall/tala 'helmingur:kk'/fall/tala/kyn
-    | 'seinni'_kk/fall/tala 'helmingur:kk'/fall/tala/kyn
 
-# Lýsingarorð sem ganga á eftir dagsetningum.
-NæstSíðast/fall/tala/kyn →
-    'næstkomandi:lo'/fall/tala/kyn
-    | 'síðastliðinn:lo'/fall/tala/kyn
-    | "sl."
-    | "nk."
-    | "n.k."        # Algeng villa.
+# Aðalliður: Tíðni
+Tíðni →
+    "að_jafnaði:tao"
+    | "ótt_og_títt:tao"
+    | "sí_og_æ:tao"
+    | 'aldrei:ao'
+    | 'alltaf:ao'
+    | 'árlega:ao'
+    | 'daglega:ao'
+    | 'dagsdaglega:ao'
+    | 'mánaðarlega:ao'
+    | 'oft:ao'
+    | 'reglulega:ao'
+    | 'sjaldan:ao'
+    | 'stundum:ao'
+    | 'títt:ao'
+    | 'vikulega:ao'
 
-Árstíð/tala/fall →  Árstíð/fall/tala
-Árstíð/fall/tala →
-    'vor:hk'/fall/tala
-    | 'sumar:hk'/fall/tala
-    | 'haust:hk'/fall/tala
-    | 'vetur:kk'/fall/tala
-SáÞessi/fall/tala/kyn →
-    'sá:fn'/fall/tala/kyn
-    | 'þessi:fn'/fall/tala/kyn
-Mánuður_et/fall → 
-    'janúarmánuður:kk'/fall
-    | 'febrúarmánuður:kk'/fall
-    | 'marsmánuður:kk'/fall
-    | 'aprílmánuður:kk'/fall
-    | 'maímánuður:kk'/fall
-    | 'júnímánuður:kk'/fall
-    | 'júlímánuður:kk'/fall
-    | 'ágústmánuður:kk'/fall
-    | 'septembermánuður:kk'/fall
-    | 'októbermánuður:kk'/fall
-    | 'nóvembermánuður:kk'/fall
-    | 'desembermánuður:kk'/fall
-    | "jan."
-    | "feb."
-    | "mar."
-    | "apr."
-    | "jún."
-    | "júl."
-    | "ág."
-    | "ágú."
-    | "sep."
-    | "sept."
-    | "okt."
-    | "nóv."
-    | "des."
-Mánaðamót/fall →
-    'mánaðamót:hk'_ft/fall? dagsafs '-:en' dagsafs/fall
-DaganaÁrinAfs/fall →
-    'dagur:kk'_ft/fall? dagsafs 'og:st' dagsafs         # (dagana) 13. október og 14. nóvember
-    | 'dagur:kk'_ft/fall? raðnr 'og:st' dagsafs         # (dagana) 13. og 14. nóvember 
-    | 'ár:hk'_ft_gr/fall? ártal 'og:st' ártal           # árin 2016-2017, árin 2016 til 2017
-    | 'ár:hk'_ft_gr/fall ártal 'og:st' tala             # árin 2016-17
-DaganaFast/fall →
-    'dagur:kk'_ft_gr/fall? dagsafs 'og:st' dagsföst     # (dagana) 13. október og 14. nóvember 2017
-    | 'dagur:kk'_ft/fall? raðnr 'og:st' dagsföst        # (dagana) 13. og 14. nóvember 2017
+# Aðalliður: Tímabil
+Tímabil →
+    FastTímabil
+    | AfstættTímabil
+    | TímabilTími
+FastTímabil →
+    DaganaTímabilFast/fall
+    | PunkturFs/fall FasturPunkturTNL/fall
+    | 'milli:fs'_ef FasturPunkturTNL/fall 'og:st' FasturPunkturTNL/fall
+    | 'frá:fs'_þgf FasturPunkturTNL/fall 'til:fs'_ef FasturPunkturTNL/fall
+    | 'milli:fs'_ef TímiPunkturTNL/fall 'og:st' tímapunkturfast     # milli kl. 14:00 og 17:00 14. nóvember 2017
+AfstættTímabil → 
+    DaganaTímabilAfstætt/fall
+    | ÁrinTímabilAfstætt/fall
+    | TímaNafnliðurStærri/fall/tala/kyn                     # rúmlega 8 vikur
+    | TímaMagnNafnliðurStærri/fall/tala/kyn                 # næstu 8 daga
+    | FráTilTími VísiDagsetning
+    | VísiDagsetning FráTilTími
+    | MagnFs/fall TímaMagnNafnliðurStærri/fall/tala/kyn     # á 20 dögum, innan 6 daga, í 30 ár
+    | 'út:fs'_þf TímaMagnNafnliðurStærri_þf/tala/kyn        # út árið
+    | 'út:fs'_þf ártal
+    | 'yfir:fs'_þf TímaMagnNafnliðurStærri_þf/tala/kyn      # yfir mánuðinn
+    | PunkturFs/fall AfsPunkturTNL/fall
+    | 'milli:fs'_ef AfsPunkturTNL/fall 'og:st' AfsPunkturTNL/fall
+    | 'frá:fs'_þgf AfsPunkturTNL/fall 'til:fs'_ef AfsPunkturTNL/fall
+    | 'milli:fs'_ef FasturPunkturTNL/fall 'og:st' AfsPunkturTNL/fall
+    | 'frá:fs'_þgf FasturPunkturTNL/fall 'til:fs'_ef AfsPunkturTNL/fall
+    | 'milli:fs'_ef AfsPunkturTNL/fall 'og:st' FasturPunkturTNL/fall
+    | 'frá:fs'_þgf AfsPunkturTNL/fall 'til:fs'_ef FasturPunkturTNL/fall
+    | 'milli:fs'_ef TímiPunkturTNL/fall 'og:st' tímapunkturafs
+    | TímaNafnorðStærri_þf/tala/kyn ÁðurEftir
+TímabilTími →
+    FráTilTími 
+    | TímaNafnliðurMinni/fall/tala/kyn                      # um það bil tæpar 10 sekúndur
+    | TímaMagnNafnliðurMinni/fall/tala/kyn                  # næstu 8 mínútur
+    | MagnFs/fall TímaMagnNafnliðurMinni/fall/tala/kyn      # á 20 sekúndum, innan 6 sekúndna, í 30 millisekúndur
+    | PunkturFs/fall TímiPunkturTNL/fall                    # eftir kl. 14:00
+    | 'milli:fs'_ef TímiPunkturTNL/fall 'og:st' TímiPunkturTNL/fall
+    | 'frá:fs'_þgf TímiPunkturTNL/fall 'til:fs'_ef TímiPunkturTNL/fall
+    | TímaNafnorðMinni_þf/tala/kyn ÁðurEftir
+
+FasturPunkturTNL/fall →
+    FöstDagsetning
+    | FasturTímapunktur
+TímiPunkturTNL/fall →
+    FasturTími
+    | ÓfullkominnTími
+# Dagsetningar/tímapunktar sem ganga innan FL til að tákna tímabil
+AfsPunkturTNL/fall → 
+    ÓfullkominDagsetning
+    | ÓfullkominnTímapunktur
+    | Vikudagur/fall/tala tími?
+# Forsetningar sem standa með TNL sem sýnir magn - 20 sekúndur, 30 ár
+MagnFs/fall →
+    'á:fs'_þgf
+    | 'innan:fs'_ef
+    | 'í:fs'_þf
+# Forsetningar sem standa með TNL sem sýna fastan punkt - 14. nóvember 2016, kl. 14:00
+PunkturFs/fall →
+    'fyrir:fs'_þf       # Ath. að með þgf táknar það dagsetningu/tíma.
+    | 'eftir:fs'_þf
+    | 'frá:fs'_þgf OgMeð?
+    | 'til:fs'_ef OgMeð?
+    | 'síðan:fs'_þf
+
+DaganaTímabilAfstætt/fall →
+    'dagur:kk'_ft/fall? dagsafs Til dagsafs     # (dagana) 13. október til 14. nóvember
+    | 'dagur:kk'_ft/fall? raðnr Til dagsafs     # (dagana) 13. og 14. nóvember
+ÁrinTímabilAfstætt/fall →
+    'ár:hk'_ft_gr/fall? ártal Til ártal         # árin 2016-2017, árin 2016 til 2017
+    | 'ár:hk'_ft_gr/fall ártal Til tala         # árin 2016-17
+DaganaTímabilFast/fall →
+    'dagur:kk'_ft/fall? dagsafs Til dagsföst    # (dagana) 13. október til 14. nóvember 2017; 13. október-14. nóvember 2017
+    | 'dagur:kk'_ft/fall? raðnr Til dagsföst    # (dagana) 13.-14. nóvember 2017, 13. til 14. nóvember 2017
+FráTilTími → 
+    'frá:fs'_þgf? tími Til tími DaganaTímabilAfstætt/fall?
+    | 'frá:fs'_þgf? tími Til tími DaganaTímabilFast/fall?   
+    | 'frá:fs'_þgf? tími Til tímapunkturfast                # kl. 14:00-17:00 14. nóvember 2017
+    | 'frá:fs'_þgf? tími Til tímapunkturafs                 # kl. 14:00-17:00 14. nóvember
+    | 'frá:fs'_þgf? tími Til tími HinnSá_þf? dagsföst       # kl. 14:00 til 17:00 hinn 14. nóvember 2017
+    | 'frá:fs'_þgf? tími Til tími HinnSá_þf? dagsafs        # kl. 14:00 til 17:00 þann 14. nóvember
+Til →
+    'til:fs'
+    | '-:en'
+OgMeð → 'og:st' 'með:fs'_þgf    # (frá) og með, (til) og með
+
+
+# Tímanafnliðir
+TímaNafnliðurStærri/fall/tala/kyn →
+    TímaAtviksEinkunn? TímaLo/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðStærri/fall/tala/kyn
+TímaNafnliðurMinni/fall/tala/kyn → 
+    TímaAtviksEinkunn? TímaLo/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðMinni/fall/tala/kyn
+# næsta dag
+TímaVísiNafnliðurStærri/fall/tala/kyn → 
+    TímaÁkvæðisliður/fall/tala/kyn TímaNafnorðStærri/fall/tala/kyn
+# sömu mínútu
+TímaVísiNafnliðurMinni/fall/tala/kyn → 
+    TímaÁkvæðisliður/fall/tala/kyn TímaNafnorðMinni/fall/tala/kyn
+# næstu 20 daga
+TímaMagnNafnliðurStærri/fall/tala/kyn →
+    TímaAtviksEinkunn? TímaÁkvæðisliður/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðStærri/fall/tala/kyn
+# síðustu 40 mínútur
+TímaMagnNafnliðurMinni/fall/tala/kyn →
+    TímaAtviksEinkunn? TímaÁkvæðisliður/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðMinni/fall/tala/kyn
+
+# Tímaeiningar sem eru minni en dagur
+TímaNafnorðMinni/fall/tala/kyn →
+    'nanósekúnda:kvk'/fall/tala/kyn
+    | 'míkrósekúnda:kvk'/fall/tala/kyn
+    | 'millisekúnda:kvk'/fall/tala/kyn
+    | 'sekúndubrot:hk'/fall/tala/kyn
+    | 'sekúnda:kvk'/fall/tala/kyn
+    | 'sek.'
+    | 'mínúta:kvk'/fall/tala/kyn
+    | 'mín.'
+    | 'korter:hk'/fall/tala/kyn
+    | 'kortér:hk'/fall/tala/kyn
+    | 'stundarfjórðungur:kk'/fall/tala/kyn
+    | 'hálftími:kk'/fall/tala/kyn
+    | 'klukkustund:kvk'/fall/tala/kyn
+    | 'klukkutími:kk'/fall/tala/kyn
+    | 'klst.'
+# Tímaeiningar sem eru stærri en dagur
+TímaNafnorðStærri/fall/tala/kyn →
+    'dagur:kk'/fall/tala/kyn
+    | 'sólarhringur:kk'/fall/tala/kyn
+    | 'vika:kvk'/fall/tala/kyn
+    | 'mánuður:kk'/fall/tala/kyn
+    | 'ársfjórðungur:kk'/fall/tala/kyn
+    | 'önn:kvk'/fall/tala/kyn
+    | 'misseri:hk'/fall/tala/kyn
+    | 'ár:hk'/fall/tala/kyn
+    | 'áratugur:kk'/fall/tala/kyn
+    | 'árhundrað:hk'/fall/tala/kyn
+    | 'aldarfjórðungur:kk'/fall/tala/kyn
+    | 'öld:kvk'/fall/tala/kyn
+    | 'árþúsund:hk'/fall/tala/kyn
+    | 'þúsöld:kvk'/fall/tala/kyn
+
 TímaAtviksEinkunn →
     'rétt:ao' TímaAtviksEinkunn
     | 'rúmlega:ao'
@@ -638,29 +584,45 @@ Tímatala/fall/tala/kyn →
 TímaLo/fall/tala/kyn →
     'rúmur:lo'/fall/tala/kyn
     | 'tæpur:lo'/fall/tala/kyn
+
+# Annað
+HinnSá/fall →
+    'sá:fn'_et_kk/fall
+    | 'hinn:gr'_et_kk/fall
+Vikudagur/tala/fall → Vikudagur/fall/tala
+Vikudagur/fall/tala →
+    'sunnudagur:kk'/fall/tala
+    | 'mánudagur:kk'/fall/tala
+    | 'þriðjudagur:kk'/fall/tala
+    | 'miðvikudagur:kk'/fall/tala
+    | 'fimmtudagur:kk'/fall/tala
+    | 'föstudagur:kk'/fall/tala
+    | 'laugardagur:kk'/fall/tala
+    | 'sunnudagur:kk'/fall/tala
+    #| "mán."                     # 'mán.' er ekki í Abbrev.conf eins og er, rekst á mán. fyrir mánuður.
+    | "þri."
+    #| "mið."                     # 'mið.' er ekki inni í Abbrev.conf eins og er, rekst á 'mið' aftast í setningu.
+    | "fim."
+    | "fös."
+    | "lau."
+    | "sun."
+    | "mánud."
+    | "þriðjud."
+    | "miðvikud."
+    | "fimmtud."
+    | "föstud."
+    | "laugard."
+    | "sunnud."
+
 FyrrSíðar →
     'snemma:ao'_mst     # fyrr
     | 'síðar:ao'        # síðar
     | 'seint:ao'_mst    # seinna
-
-# Bara AfstæðDagsetning -- aðrir svipaðir liðir fara í aðrar reglur (í viku (Tímabil), á ári (Tíðni), í mánuð (Tímabil), ...)
-# á árinu, í vikunni, í mánuðinum
-AfstæðDagsetningFs → 
-    'á:fs'_þgf 'ár:hk'_þgf_et_gr                                # á árinu
-    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_hk 'ár:hk'_þgf_et      # á næsta ári
-    | 'í:fs'_þgf 'mánuður:kk'_þgf_et_gr                         # í mánuðinum
-    | 'í:fs'_þgf TímaÁkvæðisliður_þgf_et_kk 'mánuður:kk'_þgf_et # í síðasta mánuði
-    | 'í:fs'_þgf 'vika:kvk'_þgf_et_gr                           # í vikunni
-    | 'í:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'vika:kvk'_þgf_et # í sömu viku
-    | 'í:fs'_þf Árstíð_þf_et                                    # í haust, í vetur, í vor, í sumar
-
-AfstæðurTímiFs →
-    'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'sekúnda:kvk'_þgf_et         # á sömu sekúndu
-    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'mínúta:kvk'_þgf_et        # á næstu mínútu
-    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_hk 'kortér:hk'_þgf_et          # á sama kortéri
-    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_hk 'korter:hk'_þgf_et          # á næsta korteri
-    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kvk 'klukkustund:kvk'_þgf_et   # á síðustu klukkustund
-    | 'á:fs'_þgf TímaÁkvæðisliður_þgf_et_kk 'klukkutími:kk'_þgf_et      # á sama klukkutíma
+ÁðurSíðarSeinna →
+    'áður:ao' 
+    | 'síðar:ao'
+    | 'seint:ao'_mst
+    | 'snemma:ao'_mst # fyrr
 
 TímaÁkvæðisliður/fall/tala/kyn →
     SáÞessi/fall/tala/kyn TímaÁkvæðisLo/fall/tala/kyn
@@ -678,23 +640,26 @@ TímaÁkvæðisLo/fall/tala/kyn →
     | "sl."
     | 'undanfarinn:lo'/fall/tala/kyn
     | 'undangenginn:lo'/fall/tala/kyn
-TímaNafnliðurStærri/fall/tala/kyn →
-    TímaAtviksEinkunn? TímaLo/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðStærri/fall/tala/kyn
-TímaNafnliðurMinni/fall/tala/kyn → 
-    TímaAtviksEinkunn? TímaLo/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðMinni/fall/tala/kyn
+SáÞessi/fall/tala/kyn →
+    'sá:fn'/fall/tala/kyn
+    | 'þessi:fn'/fall/tala/kyn
 
-# næsta dag
-TímaVísiNafnliðurStærri/fall/tala/kyn → 
-    TímaÁkvæðisliður/fall/tala/kyn TímaNafnorðStærri/fall/tala/kyn
 
-# sömu mínútu
-TímaVísiNafnliðurMinni/fall/tala/kyn → 
-    TímaÁkvæðisliður/fall/tala/kyn TímaNafnorðMinni/fall/tala/kyn
+# Lýsingarorð sem ganga á eftir dagsetningum.
+NæstSíðast/fall/tala/kyn →
+    'næstkomandi:lo'/fall/tala/kyn
+    | 'síðastliðinn:lo'/fall/tala/kyn
+    | "sl."
+    | "nk."
+    | "n.k."        # Algeng villa.
 
-# næstu 20 daga
-TímaMagnNafnliðurStærri/fall/tala/kyn →
-    TímaAtviksEinkunn? TímaÁkvæðisliður/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðStærri/fall/tala/kyn
+ÁðurEftir →
+    'áður:ao'
+    | 'eftir:ao'
+    | "á_undan:ao"
+    | "á_eftir:ao"
 
-# síðustu 40 mínútur
-TímaMagnNafnliðurMinni/fall/tala/kyn →
-    TímaAtviksEinkunn? TímaÁkvæðisliður/fall/tala/kyn? Tímatala/fall/tala/kyn? TímaNafnorðMinni/fall/tala/kyn
+ÍByrjunLok →
+    'í:fs'_þgf 'byrjun:kvk'_þgf
+    | 'í:fs'_þf 'lok:hk'_ft_þf
+    | 'undir:fs'_þf 'lok:hk'_ft_þf
