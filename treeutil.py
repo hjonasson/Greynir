@@ -81,7 +81,6 @@ _TEST_NT_MAP = { # Til að prófa í parse_text_to_bracket_form()
     "AtvFs" : "ADVP",
     "Atviksliður" : "ADVP",
     "LoAtviksliðir" : "ADVP",
-    "Dagsetning" : "ADVP-DATE",
     "LoLiður" : "ADJP",
     "Töluorð" : "NUM",
 
@@ -93,14 +92,15 @@ _TEST_NT_MAP = { # Til að prófa í parse_text_to_bracket_form()
     #"Lo" : "ADJ",
    
     # Tímaliðir - nýir
-    "Tímanafnliður" : "NP-TMP",
-    "TímaAtviksEinkunn" : "ADVP",
-    "TímaAtviksliður" : "ADVP-TMP",
-    "TímaLo" : "ADJP",
-    "TímaFn" : "ADJP",
-    "RaðtalaLo" : "ADJP",
-    "Raðnafnliður" : "NP-TMP",
-    "AllurÞessi" : "ADJP",
+    "FöstDagsetning" : "ADVP-DATE-ABS",
+    "AfstæðDagsetning" : "ADVP-DATE-REL",
+    "FasturTímapunktur" : "ADVP-TIMESTAMP-ABS",
+    "AfstæðurTímapunktur" : "ADVP-TIMESTAMP-REL",
+    "Tíðni" : "ADVP-TMP-SET",
+    "Tímabil" : "ADVP-DUR",
+    "FastTímabil" : "ADVP-DUR-ABS",
+    "AfstættTímabil" : "ADVP-DUR-REL",
+    "TímabilTími" : "ADVP-DUR-TIME",
 
 }
 
@@ -153,11 +153,19 @@ _TEST_ID_MAP = { # Til að prófa í parse_text_to_bracket_form()
     "NP-OBJ" : dict(name = "Beint andlag"),
     "NP-IOBJ" : dict(name = "Óbeint andlag"),
     "NP-PRD" : dict(name = "Sagnfylling"),
-    "NP-TMP" : dict(name = "Tímanafnliður"),
+
+    "ADVP-DATE-ABS" : dict(name = "FöstDagsetning"),
+    "ADVP-DATE-REL" : dict(name = "AfstæðDagsetning"),
+    "ADVP-TIMESTAMP-ABS" : dict(name = "FasturTímapunktur"),
+    "ADVP-TIMESTAMP-REL" : dict(name = "AfstæðurTímapunktur"),
+    "ADVP-TMP-SET" : dict(name = "Tíðni"),
+    "ADVP-DUR" : dict(name = "Tímabil"),
+    "ADVP-DUR-ABS" : dict(name = "FastTímabil"),
+    "ADVP-DUR-REL" : dict(name = "AfstættTímabil"),
+    "ADVP-DUR-TIME" : dict(name = "TímabilTími"),
 
     "ADVP" : dict(name = "Atviksliður", subject_to = { "ADVP" }),
     "ADVP-DATE" : dict(name = "Tímasetning", overrides = "ADVP"),
-    "ADVP-TMP" : dict(name = "Tímaatviksliður"),
     "PP" : dict(name = "Forsetningarliður", overrides = "ADVP"),
     "ADJP" : dict(name = "Lýsingarliður"),
     
