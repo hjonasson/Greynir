@@ -172,7 +172,6 @@ DAYS_OF_MONTH = {
     "þrítugasta": 30,
 }
 
-
 # Time of day expressions spelled out
 CLOCK_NUMBERS = {
     "eitt": [1,0,0],
@@ -215,7 +214,7 @@ CLOCK_HALF = frozenset([
     "hálftíu",
     "hálfellefu",
     "hálftólf"
-    ])
+])
 
 # Handling of Roman numerals
 
@@ -315,24 +314,24 @@ class TOK:
         PUNCTUATION: "PUNCTUATION",
         TIME: "TIME",
         TIMESTAMP: "TIMESTAMP",
-        TIMESTAMPABS: "ABSOLUTE TIMESTAMP",
-        TIMESTAMPREL: "RELATIVE TIMESTAMP",
+        TIMESTAMPABS: "TIMESTAMPABS",
+        TIMESTAMPREL: "TIMESTAMPREL",
         DATE: "DATE",
-        DATEABS: "ABSOLUTE DATE",
-        DATEREL: "RELATIVE DATE",
+        DATEABS: "DATEABS",
+        DATEREL: "DATEREL",
         YEAR: "YEAR",
         NUMBER: "NUMBER",
         CURRENCY: "CURRENCY",
         AMOUNT: "AMOUNT",
         PERSON: "PERSON",
         WORD: "WORD",
-        UNKNOWN: "UNKNOWN",
         TELNO: "TELNO",
         PERCENT: "PERCENT",
         URL: "URL",
         EMAIL: "EMAIL",
         ORDINAL: "ORDINAL",
         ENTITY: "ENTITY",
+        UNKNOWN: "UNKNOWN",
         P_BEGIN: "BEGIN PARA",
         P_END: "END PARA",
         S_BEGIN: "BEGIN SENT",
@@ -2226,31 +2225,25 @@ def tokenize(text, auto_uppercase = False, enclosing_session = None):
 
     # Thank you Python for enabling this programming pattern ;-)
     token_stream = raw_tokenize(text)
-    st = token_stream
 
     # Static multiword phrases
     token_stream = parse_static_phrases(token_stream, auto_uppercase)
-    st = token_stream
 
     # Lookup meanings from dictionary
     token_stream = annotate(token_stream, auto_uppercase)
-    st = token_stream
 
     # First phrase pass
     token_stream = parse_phrases_1(token_stream)
-    st = token_stream
 
     # Second phrase pass
     token_stream = parse_phrases_2(token_stream)
-    st = token_stream
 
     # Recognize named entities from database
     token_stream = recognize_entities(token_stream, enclosing_session)
-    st = token_stream
 
      # Eliminate very uncommon meanings
     token_stream = disambiguate_phrases(token_stream)
-    st = token_stream
+
     return token_stream
 
 
@@ -2260,6 +2253,7 @@ def paragraphs(toklist):
         of the sentence (the TOK.S_BEGIN token) and a list of the tokens within the
         sentence, not including the starting TOK.S_BEGIN or the terminating TOK.S_END
         tokens. """
+
     def valid_sent(sent):
         """ Return True if the token list in sent is a proper
             sentence that we want to process further """

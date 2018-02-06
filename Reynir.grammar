@@ -4524,7 +4524,7 @@ Dagspartur →
     | 'í:fs'_þf DagsByrjunLok_þf
     | 'í:fs'_þgf 'hádegi:hk'_þgf_et_gr
     | 'á:fs'/fall VikuMorgunnKvöld_et/fall  # á mánudagsmorgun/morgni, á fimmtudagskvöld/kvöldi
-    | 'um:fs'_þf UmTNO_þf
+    | 'um:fs'_þf UmTímanafnorð_þf
 
 FyrirEftirÁ → 'fyrir:fs'_þf | 'eftir:fs'_þf | 'á:fs'_þgf
 
@@ -4579,7 +4579,7 @@ VikuMorgunnKvöld_gr/fall/tala →
     | 'sunnudagskvöld:hk'_gr/fall/tala
 
 # Safn tímanafnorða sem geta staðið í FL með 'um' og tákna einingu sem er minni en dagur.
-UmTNO/fall →
+UmTímanafnorð/fall →
     'aftann:kk'/fall
     | 'árdegi:hk'/fall
     | 'árdegisbil:hk'/fall
@@ -4772,7 +4772,7 @@ TímaNafnorðMinni/fall/tala/kyn →
     | 'klukkutími:kk'/fall/tala/kyn
     | 'klst.'
 
-# Tímaeiningar sem eru stærri en dagur
+# Tímaeiningar sem eru dagur eða lengri
 TímaNafnorðStærri/fall/kyn/tala → TímaNafnorðStærri/fall/tala/kyn
 TímaNafnorðStærri/fall/tala/kyn →
     'dagur:kk'/fall/tala/kyn

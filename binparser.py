@@ -280,7 +280,6 @@ class BIN_Token(Token):
         "haust", "haustmisseri", "vormisseri", "skeið", "tímaskeið", "tímabil", "tíð", "leiktíð", "árstíð", 
         "leikár", "almanaksár", "rekstrarár", "skólaár", "kjörtímabil", "árabil", "áraskeið", "áratugaskeið" ])
 
-
     _UNDERSTOOD_PUNCTUATION = ".?!,:;–-()[]"
 
     _MEANING_CACHE = { }

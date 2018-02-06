@@ -117,7 +117,8 @@
    .node-nonterminal.NP-POSS rect,
    .node-nonterminal.NP-DAT rect,
    .node-nonterminal.NP-TITLE rect,
-   .node-nonterminal.NP-ADDR rect
+   .node-nonterminal.NP-ADDR rect,
+   .node-nonterminal.NP-AGE rect
    {
       fill: #5bc0de;
       stroke: #5bc0de;
@@ -129,7 +130,16 @@
    }
 
    .node-nonterminal.ADVP rect,
-   .node-nonterminal.ADVP-DATE rect
+   .node-nonterminal.ADVP-DATE rect,
+   .node-nonterminal.ADVP-DATE-ABS rect,
+   .node-nonterminal.ADVP-DATE-REL rect,
+   .node-nonterminal.ADVP-TIMESTAMP-ABS rect,
+   .node-nonterminal.ADVP-TIMESTAMP-REL rect,
+   .node-nonterminal.ADVP-TMP-SET rect,
+   .node-nonterminal.ADVP-DUR rect,
+   .node-nonterminal.ADVP-DUR-ABS rect,
+   .node-nonterminal.ADVP-DUR-REL rect,
+   .node-nonterminal.ADVP-DUR-TIME rect
    {
       fill: #5cb85c;
       stroke: #5cb85c;
@@ -209,7 +219,9 @@
       fill: #888;
    }
    .node-terminal.ao text.symbol,
-   .node-terminal.eo text.symbol
+   .node-terminal.eo text.symbol,
+   .node-terminal.tao text.symbol,
+   .node-terminal.spao text.symbol
    {
       fill: #888;
    }
@@ -488,18 +500,20 @@ $("div#tree div.grid div.table-responsive")
 
 function wrapTokenInfo(dd) {
    // Convert token information from the JSON simplified format
-   // to the complex format expected by tokenInfo()
+   // to the complex format expected by tokenInfo().
+   // !!! NOTE: This is kind of brain dead since we need to decode this
+   // simplified form again in the JavaScript code in treegrid.html.
    var tv = dd.v;
    if (dd.k == "AMOUNT")
       tv = [ dd.v.amount, dd.v.currency ];
    else
-   if (dd.k == "DATE")
+   if (dd.k == "DATE" || dd.k == "DATEABS" || dd.k == "DATEREL")
       tv = [ dd.v.y, dd.v.mo, dd.v.d ];
    else
    if (dd.k == "TIME")
       tv = [ dd.v.h, dd.v.m, dd.v.s ];
    else
-   if (dd.k == "TIMESTAMP")
+   if (dd.k == "TIMESTAMP" || dd.k == "TIMESTAMPREL" || dd.k == "TIMESTAMPABS")
       tv = [ dd.v.y, dd.v.mo, dd.v.d, dd.v.h, dd.v.m, dd.v.s ];
    else
    if (dd.k == "PERCENT" || dd.k == "NUMBER" || dd.k == "CURRENCY")
@@ -641,13 +655,14 @@ function d3_update(source) {
                if (d.data.k && d.data.k == "PERCENT")
                   classes.push("percent");
                else
-               if (d.data.k && d.data.k == "TIMESTAMP")
+               if (d.data.k && (d.data.k == "TIMESTAMP" ||
+                  d.data.k == "TIMESTAMPREL" || d.data.k == "TIMESTAMPABS"))
                   classes.push("timestamp");
                else
                if (d.data.k && d.data.k == "TIME")
                   classes.push("time");
                else
-               if (d.data.k && d.data.k == "DATE")
+               if (d.data.k && (d.data.k == "DATE" || d.data.k == "DATEABS" || d.data.k == "DATEREL"))
                   classes.push("date");
                else
                if (firstPart == "sérnafn" || firstPart == "entity")
@@ -721,6 +736,8 @@ function d3_update(source) {
       ["date", "\uE055"], // clock
       ["ao", "\uE049"], // star
       ["eo", "\uE049"], // star
+      ["tao", "\uE049"], // star
+      ["spao", "\uE049"], // star
       ["currency", "\u20AC"], // euro
       ["number", "\uE319"], // more-items
       ["to", "\uE319"], // more-items
@@ -826,7 +843,6 @@ function initMain(jQuery) {
       };
    $(window).resize(cursorSetter);
    cursorSetter();
-
 }
 
 $(document).ready(initMain);

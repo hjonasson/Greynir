@@ -44,6 +44,10 @@ var TOK_PERSON = 14;
 var TOK_EMAIL = 15;
 var TOK_ENTITY = 16;
 var TOK_UNKNOWN = 17;
+var TOK_DATEABS = 18;
+var TOK_DATEREL = 19;
+var TOK_TIMESTAMPABS = 20;
+var TOK_TIMESTAMPREL = 21;
 
 var tokClass = [];
 
@@ -61,6 +65,10 @@ tokClass[TOK_TELNO] = "telno";
 tokClass[TOK_EMAIL] = "email";
 tokClass[TOK_TIME] = "time";
 tokClass[TOK_UNKNOWN] = "nf";
+tokClass[TOK_DATEABS] = "dateabs";
+tokClass[TOK_DATEREL] = "daterel";
+tokClass[TOK_TIMESTAMPABS] = "timestampabs";
+tokClass[TOK_TIMESTAMPREL] = "timestamprel";
 
 var tokId = [];
 
@@ -81,6 +89,10 @@ tokId["PERSON"] = TOK_PERSON;
 tokId["EMAIL"] = TOK_EMAIL;
 tokId["ENTITY"] = TOK_ENTITY;
 tokId["UNKNOWN"] = TOK_UNKNOWN;
+tokId["DATEABS"] = TOK_DATEABS;
+tokId["DATEREL"] = TOK_DATEREL;
+tokId["TIMESTAMPABS"] = TOK_TIMESTAMPABS;
+tokId["TIMESTAMPREL"] = TOK_TIMESTAMPREL;
 
 var wordClass = {
    "no" : "óþekkt nafnorð",
@@ -95,6 +107,7 @@ var wordClass = {
    "ao" : "atviksorð",
    "spao" : "spurnaratviksorð",
    "tao" : "tímaatviksorð",
+   "tno" : "tímanafnorð",
    "to" : "töluorð",
    "fn" : "fornafn",
    "pfn" : "persónufornafn",
@@ -368,6 +381,17 @@ function tokenInfo(t, nameDict) {
      r.details = "dags. " + iso_date(t.v);
    }
    else
+   if (t.k == TOK_DATEABS) {
+     r.lemma = t.x;
+     // Show the date in ISO format
+     r.details = "dags. " + iso_date(t.v);
+   }
+   else
+   if (t.k == TOK_DATEREL) {
+     r.lemma = t.x;
+     r.details = "afstæð dagsetning";
+   }
+   else
    if (t.k == TOK_TIME) {
      r.lemma = t.x;
      // Show the time in ISO format
@@ -459,6 +483,17 @@ function tokenInfo(t, nameDict) {
       r.lemma = t.x;
       // Show the timestamp in ISO format
       r.details = t.v ? iso_timestamp(t.v) : "";
+   }
+   else
+   if (t.k == TOK_TIMESTAMPABS) {
+      r.lemma = t.x;
+      // Show the timestamp in ISO format
+      r.details = t.v ? iso_timestamp(t.v) : "";
+   }
+   else
+   if (t.k == TOK_TIMESTAMPREL) {
+      r.lemma = t.x;
+      r.details = "afstæð tímasetning";
    }
    return r;
 }
