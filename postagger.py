@@ -210,7 +210,6 @@ class IFD_Tagset:
         "tala" : "_number",
         "raðnr" : "_raðnr",
         "ártal" : "_year",
-        "tno" : "_n",
         "so" : "_s",
         "lo" : "_l",
         "ao" : "_a",

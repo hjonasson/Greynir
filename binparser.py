@@ -89,7 +89,6 @@ class BIN_Token(Token):
         "stt": "stt", # Never appears in BÍN
         "abfn": "abfn",
         "nhm": "nhm",
-        "tno": "tno",
         "tao": "tao",
     }
 
@@ -242,43 +241,6 @@ class BIN_Token(Token):
     _TAO = frozenset([ "daglega", "dagsdaglega", "alltaf", "aldrei", "fyrr", "fyrrum", "loks", "loksins", 
         "mánaðarlega", "nú", "núna", "næst", "oft", "reglulega", "seint", "snemma", "sjaldan", "stundum", 
         "síðar", "síðla", "títt", "undanfarið", "vikulega", "árla", "árlega", "áður", "þá", ])
-
-    # Temporal nouns
-    _TNO = frozenset([ "skírdagur", "pálmasunnudagur", "páskadagur", "páskahelgi", "páskahátíð", 
-        "páskar", "dymbilvika", "uppstigningardagur", "hvítasunnudagur", "jól", "Þorláksmessa", 
-        "aðfangadagur", "jóladagur", "gamlársdagur", "nýár" "nýársdagur", "nýárshátíð", 
-        "þrettándahátíð", "þrettándi", "bolludagur", "sprengidagur", "öskudagur", "bóndadagur", 
-        "mæðradagur", "feðradagur", "konudagur", "sjómannadagur", "Valentínusardagur", "verslunarmannahelgi", 
-        "fullveldisdagur", "þjóðhátíðardagur", "gleðigangan", "menningarnótt", "allraheilagramessa", 
-        "hrekkjavaka", "jónsmessudagur", "þakkargjörðardagur", "þakkargjörðarhátíð", "fæðingarstund", 
-        "fæðingardagur", "afmæli", "afmælisdagur", "messudagur", "fermingardagur", "útskriftardagur", 
-        "giftingardagur", "brúðkaupsdagur", "stúdentsafmæli", "helgidagur", "kosningadagur", "sumarfrísdagur", 
-        "útfarardagur", "dánarafmæli", "dánardægur", "dánarstund", "sunnudagskvöld", "sunnudagsmorgunn", 
-        "sunnudagur", "mánudagskvöld", "mánudagsmorgunn", "mánudagur", "þriðjudagskvöld", "þriðjudagur", 
-        "þriðjudagsmorgunn", "miðvikudagskvöld", "miðvikudagur", "miðvikudagsmorgunn", "fimmtudagskvöld", 
-        "fimmtudagur", "fimmtudagsmorgunn", "föstudagskvöld", "föstudagur", "föstudagsmorgunn", 
-        "laugardagskvöld", "laugardagur", "laugardagsmorgunn", "mánadagur", "týsdagur", "óðinsdagur", 
-        "þórsdagur", "frjádagur", "þvottdagur", "janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", 
-        "ágúst", "september", "október", "nóvember", "desember", "janúarmánuður", "febrúarmánuður", 
-        "marsmánuður", "aprílmánuður", "maímánuður", "júnímánuður", "júlímánuður", "ágústmánuður", 
-        "septembermánuður", "októbermánuður", "nóvembermánuður", "desembermánuður", "einmánuður", "harpa", 
-        "skerpla", "sólmánuður", "heyannir", "tvímánuður", "haustmánuður", "gormánuður", "ýlir", "mörsugur", 
-        "þorri", "góa", "nanósekúnda", "míkrósekúnda", "millisekúnda", "sekúndubrot", "sekúnda", "sek.", "mín.", 
-        "mínúta", "korter", "kortér", "stundarfjórðungur", "hálftími", "klst.", "klukkustund", "klukkutími", 
-        "tími", "vinnustund", "sólarhringur", "dagur", "vika", "mánuður", "misseri", "önn", "ársfjórðungur", 
-        "árshelmingur", "ár", "áratugur", "aldarfjórðungur", "árhundrað", "öld", "árþúsund", "þúsöld",
-        "fyrradagur", "rismál", "árdegi", "árdegisbil", "sólarupprás", "dagmál", "morgunmál", 
-        "morgunn", "morgunbil", "morgunleyti", "morgunstund", "nón", "hádegi", "hádegisbil", "hádegisleyti", 
-        "eftirmiðdagur", "eftirmiðdegi", "miðdegisleyti", "miðdegi", "miðdegisbil", "miðdegisstund", "síðdegi", 
-        "síðdegisbil", "síðdegisleyti", "síðdegisstund", "aftann", "aftanbil", "aftanleyti", "dagslok", 
-        "háttumál", "kvöldmatarleyti", "kvöld", "kvöldleyti", "kvöldbil", "kvöldstund", "miðnætti", "miðnæturbil", 
-        "miðnæturleyti", "nótt", "næturleyti", "næturlag", "sólsetur", "ótta", "óttubil", "aðfaranótt", 
-        "klukkan", "eittleyti", "tvöleyti", "þrjúleyti", "fjögurleyti", "fimmleyti", "sexleyti", "sjöleyti", 
-        "áttaleyti", "níuleyti", "tíuleyti", "ellefuleyti", "tólfleyti", "helgi", "vikubyrjun", "vikudagur", 
-        "vikulok", "ársbyrjun", "árslok", "haustdagur", "sumardagur", "vetrardagur", "vordagur", "mánaðamót", 
-        "áramót", "aldamót", "dagpartur", "fyrripartur", "seinnipartur", "mánaðardagur", "sumar", "vetur", "vor", 
-        "haust", "haustmisseri", "vormisseri", "skeið", "tímaskeið", "tímabil", "tíð", "leiktíð", "árstíð", 
-        "leikár", "almanaksár", "rekstrarár", "skólaár", "kjörtímabil", "árabil", "áraskeið", "áratugaskeið" ])
 
     _UNDERSTOOD_PUNCTUATION = ".?!,:;–-()[]"
 
@@ -776,20 +738,6 @@ class BIN_Token(Token):
                     # Required case or number not found: no match
                     return False
             return True
-
-        def matcher_tno(m):
-            """ Check temporal words """
-            if BIN_Token.KIND[m.ordfl] != "no":
-                return False
-            for v in terminal.variants:
-                if v in BIN_Token.GENDERS_SET:
-                    if m.ordfl != v:
-                        # Mismatched gender
-                        return False
-                elif BIN_Token.VARIANT[v] not in m.beyging:
-                    # Required case or number not found: no match
-                    return False
-            return m.stofn in BIN_Token._TNO
 
         def matcher_abfn(m):
             """ Check reflexive pronoun (afturbeygt fornafn) """

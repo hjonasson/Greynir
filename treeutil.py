@@ -114,7 +114,6 @@ _TEST_TERMINAL_MAP = {
     "kk" : "N",
     "kvk" : "N",
     "fyrirtæki" : "N",
-    "tno" : "N",
     "fn" : "PRON",
     "pfn" : "PRON",
     "abfn" : "PRON",

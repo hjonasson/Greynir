@@ -4308,7 +4308,7 @@ AfstæðDagsetning →
     | 'eftir:fs'_þf TímaNafnliðurStærri_þf/tala/kyn                # eftir tæplega átta daga
 
     | FyrrSíðarSeinna? AfstæðDagsetningFs                          # fyrr á árinu, síðar á árinu
-    | FyrrSíðarSeinna? TímaVísiNafnliðurStærri_þf_et/kyn           # sama mánuð, fyrr sama dag
+    | FyrrSíðarSeinna TímaVísiNafnliðurStærri_þf_et/kyn           # fyrr sama mánuð, fyrr sama dag   - of vítt með spurningarmerki á FyrrSíðarSeinna
     | "í_hitteðfyrra:tao"
     | "í_hittiðfyrra:tao"
     | VísiDagsetning                                               # á föstudag, um helgina, á morgun, í gær
@@ -4578,7 +4578,7 @@ VikuMorgunnKvöld_gr/fall/tala →
     | 'sunnudagsmorgunn:kk'_gr/fall/tala
     | 'sunnudagskvöld:hk'_gr/fall/tala
 
-# Safn tímanafnorða sem geta staðið í FL með 'um' og tákna einingu sem er minni en dagur.
+# Safn tímanafnorða sem geta staðið í FL með 'um' og tákna einingu sem er styttri en dagur.
 UmTímanafnorð/fall →
     'aftann:kk'/fall
     | 'árdegi:hk'/fall
@@ -4622,6 +4622,45 @@ Tíðni →
     | 'stundum:ao'
     | 'títt:ao'
     | 'vikulega:ao'
+    | TíðniNafnliðurStærri
+    | TíðniNafnliðurMinni
+    | TíðniForsetningarliðurStærri
+    | TíðniForsetningarliðurMinni
+
+TíðniNafnliðurStærri →
+    TíðniLo_þf_et/kyn TímaNafnorðStærri_þf_et/kyn       # sérhvern dag, hverja viku
+    | 'dagur:kk'_þf_et TíðniLo_þf_et_kk                 # dag hvern
+    | TíðniLo_þf_et_kk Vikudagur_þf_et                  # sérhvern fimmtudag
+    | 'allur:fn'_þf_ft/kyn 'virkur:lo'_þf_ft/kyn?       # alla (virka) daga - ath. et. væri tímabil; allan daginn
+        TímaNafnorðStærri_þf_ft/kyn       
+    | 'allur:fn'_þf_ft_kk Vikudagur_þf_ft               # alla fimmtudaga
+
+TíðniForsetningarliðurStærri →
+    'á:fs'_þgf TíðniLo_þgf_et_kk                        # á hverjum (virkum) degi
+        'virkur:lo'_þgf_et_kk? 'dagur:kk'_þgf_et    
+    | 'á:fs'_þgf TíðniLo_þgf_et_kk Vikudagur_þgf_et     # á hverjum fimmtudegi
+    | 'á:fs'_þgf Vikudagur_þgf_ft                       # á fimmtudögum
+    | 'í:fs'_þgf TíðniLo_þgf_et_kvk 'vika:kvk'_þgf_et   # í hverri viku
+    | 'í:fs'_þgf TíðniLo_þgf_et_kk 'mánuður:kk'_þgf_et  # í hverjum mánuði
+    | 'á:fs'_þgf TíðniLo_þgf_et_hk 'ár:hk'_þgf_et       # á hverju ári
+
+TíðniNafnliðurMinni →
+    TíðniLo_þf_et/kyn MorgunnKvöld_þf_et/kyn            # sérhvern morgun, hvert kvöld
+    | 'allur:fn'_þf_ft/kyn 'virkur:lo'_þf_ft/kyn?       # alla (virka) morgna, öll kvöld - ath. et. væri tímabil; allt kvöldið
+        MorgunnKvöld_þf_ft/kyn    
+
+TíðniForsetningarliðurMinni →
+    'á:fs'_þgf TíðniLo_þgf_et/kyn                       # á hverjum (virkum) morgni, á sérhverju kvöldi
+        'virkur:lo'_þgf_et/kyn? MorgunnKvöld_þgf_et/kyn
+    | 'á:fs'_þgf VikuMorgunnKvöld_þgf_ft                # á fimmtudagsmorgnum, á sunnudagskvöldum
+    | 'á:fs'_þgf TíðniLo_þgf_et/kyn                     # á hverju fimmtudagskvöldi, á sérhverjum sunnudagsmorgni
+        VikuMorgunnKvöld_þgf_et
+    | "á_morgnana"
+    | "á_kvöldin"
+
+TíðniLo/fall/tala/kyn →
+    'hver:fn'/fall/tala/kyn
+    | 'sérhver:fn'/fall/tala/kyn
 
 # Aðalliður: Tímabil
 Tímabil →
@@ -4639,8 +4678,8 @@ FastTímabil →
 AfstættTímabil → 
     DaganaTímabilAfstætt/fall
     | ÁrinTímabilAfstætt/fall
-    | TímaNafnliðurStærri/fall/tala/kyn                             # rúmlega 8 vikur
-    | TímaMagnNafnliðurStærri/fall/tala/kyn                         # næstu 8 daga
+    #| TímaNafnliðurStærri/fall/tala/kyn                             # rúmlega 8 vikur - of vítt
+    #| TímaMagnNafnliðurStærri/fall/tala/kyn                         # næstu 8 daga - of vítt
     | FráTilTími VísiDagsetning
     | VísiDagsetning FráTilTími
     | MagnFs/fall TímaMagnNafnliðurStærri/fall/tala/kyn             # á 20 dögum, innan 6 daga, í 30 ár
