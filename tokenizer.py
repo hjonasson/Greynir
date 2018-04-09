@@ -45,8 +45,8 @@ from scraperdb import SessionContext, Entity
 
 # Recognized punctuation
 
-LEFT_PUNCTUATION = "([„«#$€<"
-RIGHT_PUNCTUATION = ".,:;)]!%?“»”’…°>–"
+LEFT_PUNCTUATION = "([„‚«#$€<°"
+RIGHT_PUNCTUATION = ".,:;)]!%?“»”’‛‘…>–"
 CENTER_PUNCTUATION = '"*&+=@©|—'
 NONE_PUNCTUATION = "-/'~‘\\"
 PUNCTUATION = LEFT_PUNCTUATION + CENTER_PUNCTUATION + RIGHT_PUNCTUATION + NONE_PUNCTUATION
@@ -66,6 +66,11 @@ HYPHEN = '-' # Normal hyphen
 # Hyphens that may indicate composite words ('fjármála- og efnahagsráðuneyti')
 COMPOSITE_HYPHENS = "–-"
 COMPOSITE_HYPHEN = '–' # en dash
+
+# Quotes that can be found
+SQUOTES = "'‚‛‘"
+DQUOTES = '"“„”'
+
 
 CLOCK_WORD = "klukkan"
 CLOCK_ABBREV = "kl"
@@ -216,6 +221,612 @@ CLOCK_HALF = frozenset([
     "hálftólf"
 ])
 
+# Set of word forms that are allowed to appear more than once in a row
+ALLOWED_MULTIPLES = frozenset([
+    "af",
+    "auður",
+    "að",
+    "bannið",
+    "bara",
+    "bæði",
+    "efni",
+    "eftir",
+    "eftir ",
+    "eigi",
+    "eigum",
+    "eins",
+    "ekki",
+    "er",
+    "er ",
+    "falla",
+    "fallið",
+    "ferð",
+    "festi",
+    "flokkar",
+    "flæði",
+    "formið",
+    "fram",
+    "framan",
+    "frá",
+    "fylgi",
+    "fyrir",
+    "fyrir ",
+    "fá",
+    "gegn",
+    "gerði",
+    "getum",
+    "hafa",
+    "hafi",
+    "hafið",
+    "haft",
+    "halla",
+    "heim",
+    "hekla",
+    "heldur",
+    "helga",
+    "helgi",
+    "hita",
+    "hjá",
+    "hjólum",
+    "hlaupið",
+    "hrætt",
+    "hvort",
+    "hæli",
+    "inn ",
+    "inni",
+    "kanna",
+    "kaupa",
+    "kemba",
+    "kira",
+    "koma",
+    "kæra",
+    "lagi",
+    "lagið",
+    "leik",
+    "leikur",
+    "leið",
+    "liðið",
+    "lækna",
+    "lögum",
+    "löngu",
+    "manni",
+    "með",
+    "milli",
+    "minnst",
+    "mun",
+    "myndir",
+    "málið",
+    "móti",
+    "mörkum",
+    "neðan",
+    "niðri",
+    "niður",
+    "niður ",
+    "næst",
+    "ofan",
+    "opnir",
+    "orðin",
+    "rennur",
+    "reynir",
+    "riðlar",
+    "riðli",
+    "ráðum",
+    "rétt",
+    "safnið",
+    "sem",
+    "sett",
+    "skipið",
+    "skráðir",
+    "spenna",
+    "standa",
+    "stofna",
+    "streymi",
+    "strokið",
+    "stundum",
+    "svala",
+    "sæti",
+    "sé",
+    "sér",
+    "síðan",
+    "sótt",
+    "sýna",
+    "talið",
+    "til",
+    "tíma",
+    "um",
+    "undan",
+    "undir",
+    "upp",
+    "upp ",
+    "valda",
+    "vanda",
+    "var",
+    "vega",
+    "veikir",
+    "vel",
+    "velta",
+    "vera",
+    "verið",
+    "vernda",
+    "verða",
+    "verði",
+    "verður",
+    "veður",
+    "vikum",
+    "við",
+    "væri",
+    "yfir",
+    "yrði",
+    "á",
+    "á ",
+    "átta",
+    "í",
+    "í ",
+    "ó",
+    "ómar",
+    "úr",
+    "út",
+    "út ",
+    "úti",
+    "úti ",
+    "þegar",
+    "þjóna",
+    ])
+
+# Words incorrectly written as one word
+NOT_COMPOUNDS = { 
+    "afhverju" : ("af", "hverju"),
+    "aftanfrá" : ("aftan", "frá"),
+    "afturábak" : ("aftur", "á", "bak"),
+    "afturí" : ("aftur", "í"),
+    "afturúr" : ("aftur", "úr"),
+    "afþví" : ("af", "því"),
+    "afþvíað" : ("af", "því", "að"),
+    "allajafna" : ("alla", "jafna"),
+    "allajafnan" : ("alla", "jafnan"),
+    "allrabest" : ("allra", "best"),
+    "allrafyrst" : ("allra", "fyrst"),
+    "allsekki" : ("alls", "ekki"),
+    "allskonar" : ("alls", "konar"),
+    "allskostar" : ("alls", "kostar"),
+    "allskyns" : ("alls", "kyns"),
+    "allsstaðar" : ("alls", "staðar"),
+    "allstaðar" : ("alls", "staðar"),
+    "alltsaman" : ("allt", "saman"),
+    "alltíeinu" : ("allt", "í", "einu"),
+    "alskonar" : ("alls", "konar"),
+    "alskyns" : ("alls", "kyns"),
+    "alstaðar" : ("alls", "staðar"),
+    "annarhver" : ("annar", "hver"),
+    "annarhvor" : ("annar", "hvor"),
+    "annarskonar" : ("annars", "konar"),
+    "annarslags" : ("annars", "lags"),
+    "annarsstaðar" : ("annars", "staðar"),
+    "annarstaðar" : ("annars", "staðar"),
+    "annarsvegar" : ("annars", "vegar"),
+    "annartveggja" : ("annar", "tveggja"),
+    "annaðslagið" : ("annað", "slagið"),
+    "austanfrá" : ("austan", "frá"),
+    "austanmegin" : ("austan", "megin"),
+    "austantil" : ("austan", "til"),
+    "austureftir" : ("austur", "eftir"),
+    "austurfrá" : ("austur", "frá"),
+    "austurfyrir" : ("austur", "fyrir"),
+    "bakatil" : ("baka", "til"),
+    "báðumegin" : ("báðum", "megin"),
+    "eftirað" : ("eftir", "að"),
+    "eftirá" : ("eftir", "á"),
+    "einhverjusinni" : ("einhverju", "sinni"),
+    "einhverntíma" : ("einhvern", "tíma"),
+    "einhverntímann" : ("einhvern", "tímann"),
+    "einhvernveginn" : ("einhvern", "veginn"),
+    "einhverskonar" : ("einhvers", "konar"),
+    "einhversstaðar" : ("einhvers", "staðar"),
+    "einhverstaðar" : ("einhvers", "staðar"),
+    "einskisvirði" : ("einskis", "virði"),
+    "einskonar" : ("eins", "konar"),
+    "einsog" : ("eins", "og"),
+    "einusinni" : ("einu", "sinni"),
+    "eittsinn" : ("eitt", "sinn"),
+    "endaþótt" : ("enda", "þótt"),
+    "enganveginn" : ("engan", "veginn"),
+    "ennfrekar" : ("enn", "frekar"),
+    "ennfremur" : ("enn", "fremur"),
+    "ennþá" : ("enn", "þá"),
+    "fimmhundruð" : ("fimm", "hundruð"),
+    "fimmtuhlutar" : ("fimmtu", "hlutar"),
+    "fjórðuhlutar" : ("fjórðu", "hlutar"),
+    "fjögurhundruð" : ("fjögur", "hundruð"),
+    "framaf" : ("fram", "af"),
+    "framanaf" : ("framan", "af"),
+    "frameftir" : ("fram", "eftir"),
+    "framhjá" : ("fram", "hjá"),
+    "frammí" : ("frammi", "í"),
+    "framundan" : ("fram", "undan"),
+    "framundir" : ("fram", "undir"),
+    "framvið" : ("fram", "við"),
+    "framyfir" : ("fram", "yfir"),
+    "framá" : ("fram", "á"),
+    "framávið" : ("fram", "á", "við"),
+    "framúr" : ("fram", "úr"),
+    "fulltaf" : ("fullt", "af"),
+    "fyrirfram" : ("fyrir", "fram"),
+    "fyrren" : ("fyrr", "en"),
+    "fyrripartur" : ("fyrr", "partur"),
+    "heilshugar" : ("heils", "hugar"),
+    "helduren" : ("heldur", "en"),
+    "hinsvegar" : ("hins", "vegar"),
+    "hinumegin" : ("hinum", "megin"),
+    "hvarsem" : ("hvar", "sem"),
+    "hvaðaner" : ("hvaðan", "er"),
+    "hvaðansem" : ("hvaðan", "sem"),
+    "hvaðeina" : ("hvað", "eina"),
+    "hverjusinni" : ("hverju", "sinni"),
+    "hverskonar" : ("hvers", "konar"),
+    "hverskyns" : ("hvers", "kyns"),
+    "hversvegna" : ("hvers", "vegna"),
+    "hvertsem" : ("hvert", "sem"),
+    "hvortannað" : ("hvort", "annað"),
+    "hvorteðer" : ("hvort", "eð", "er"),
+    "hvortveggja" : ("hvort", "tveggja"),
+    "héreftir" : ("hér", "eftir"),
+    "hérmeð" : ("hér", "með"),
+    "hérnamegin" : ("hérna", "megin"),
+    "hérumbil" : ("hér", "um", "bil"),
+    "innanfrá" : ("innan", "frá"),
+    "innanum" : ("innan", "um"),
+    "inneftir" : ("inn", "eftir"),
+    "innivið" : ("inni", "við"),
+    "innvið" : ("inn", "við"),
+    "inná" : ("inn", "á"),
+    "innávið" : ("inn", "á", "við"),
+    "inní" : ("inn", "í"),
+    "innúr" : ("inn", "úr"),
+    "lítilsháttar" : ("lítils", "háttar"),
+    "margskonar" : ("margs", "konar"),
+    "margskyns" : ("margs", "kyns"),
+    "meirasegja" : ("meira", "að", "segja"),
+    "meiraðsegja" : ("meira", "að", "segja"),
+    "meiriháttar" : ("meiri", "háttar"),
+    "meðþvíað" : ("með", "því", "að"),
+    "mikilsháttar" : ("mikils", "háttar"),
+    "minniháttar" : ("minni", "háttar"),
+    "minnstakosti" : ("minnsta", "kosti"),
+    "mörghundruð" : ("mörg", "hundruð"),
+    "neinsstaðar" : ("neins", "staðar"),
+    "neinstaðar" : ("neins", "staðar"),
+    "niðreftir" : ("niður", "eftir"),
+    "niðrá" : ("niður", "á"),
+    "niðrí" : ("niður", "á"),
+    "niðureftir" : ("niður", "eftir"),
+    "niðurfrá" : ("niður", "frá"),
+    "niðurfyrir" : ("niður", "fyrir"),
+    "niðurá" : ("niður", "á"),
+    "niðurávið" : ("niður", "á", "við"),
+    "nokkrusinni" : ("nokkru", "sinni"),
+    "nokkurntíma" : ("nokkurn", "tíma"),
+    "nokkurntímann" : ("nokkurn", "tímann"),
+    "nokkurnveginn" : ("nokkurn", "veginn"),
+    "nokkurskonar" : ("nokkurs", "konar"),
+    "nokkursstaðar" : ("nokkurs", "staðar"),
+    "nokkurstaðar" : ("nokkurs", "staðar"),
+    "norðanfrá" : ("norðan", "frá"),
+    "norðanmegin" : ("norðan", "megin"),
+    "norðantil" : ("norðan", "til"),
+    "norðaustantil" : ("norðaustan", "til"),
+    "norðureftir" : ("norður", "eftir"),
+    "norðurfrá" : ("norður", "frá"),
+    "norðurúr" : ("norður", "úr"),
+    "norðvestantil" : ("norðvestan", "til"),
+    "norðvesturtil" : ("norðvestur", "til"),
+    "níuhundruð" : ("níu", "hundruð"),
+    "núþegar" : ("nú", "þegar"),
+    "ofanaf" : ("ofan", "af"),
+    "ofaná" : ("ofan", "á"),
+    "ofaní" : ("ofan", "í"),
+    "ofanúr" : ("ofan", "úr"),
+    "oní" : ("ofan", "í"),
+    "réttumegin" : ("réttum", "megin"),
+    "réttummegin" : ("réttum", "megin"),
+    "samskonar" : ("sams", "konar"),
+    "seinnipartur" : ("seinni", "partur"),
+    "semsagt" : ("sem", "sagt"),
+    "sexhundruð" : ("sex", "hundruð"),
+    "sigrihrósandi" : ("sigri", "hrósandi"),
+    "sjöhundruð" : ("sjö", "hundruð"),
+    "sjöttuhlutar" : ("sjöttu", "hlutar"),
+    "smámsaman" : ("smám", "saman"),
+    "sumsstaðar" : ("sums", "staðar"),
+    "sumstaðar" : ("sums", "staðar"),
+    "sunnanað" : ("sunnan", "að"),
+    "sunnanmegin" : ("sunnan", "megin"),
+    "sunnantil" : ("sunnan", "til"),
+    "sunnanvið" : ("sunnan", "við"),
+    "suðaustantil" : ("suðaustan", "til"),
+    "suðuraf" : ("suður", "af"),
+    "suðureftir" : ("suður", "eftir"),
+    "suðurfrá" : ("suður", "frá"),
+    "suðurfyrir" : ("suður", "fyrir"),
+    "suðurí" : ("suður", "í"),
+    "suðvestantil" : ("suðvestan", "til"),
+    "svoað" : ("svo", "að"),
+    "svokallaður" : ("svo", "kallaður"),
+    "svosem" : ("svo", "sem"),
+    "svosemeins" : ("svo", "sem", "eins"),
+    "svotil" : ("svo", "til"),
+    "tilbaka" : ("til", "baka"),
+    "tilþessað" : ("til", "þess", "að"),
+    "tvennskonar" : ("tvenns", "konar"),
+    "tvöhundruð" : ("tvö", "hundruð"),
+    "tvöþúsund" : ("tvö", "þúsund"),
+    "umfram" : ("um", "fram"),
+    "undanúr" : ("undan", "úr"),
+    "undireins" : ("undir", "eins"),
+    "uppaf" : ("upp", "af"),
+    "uppað" : ("upp", "að"),
+    "uppeftir" : ("upp", "eftir"),
+    "uppfrá" : ("upp", "frá"),
+    "uppundir" : ("upp", "undir"),
+    "uppá" : ("upp", "á"),
+    "uppávið" : ("upp", "á", "við"),
+    "uppí" : ("upp", "í"),
+    "uppúr" : ("upp", "úr"),
+    "utanaf" : ("utan", "af"),
+    "utanað" : ("utan", "að"),
+    "utanfrá" : ("utan", "frá"),
+    "utanmeð" : ("utan", "með"),
+    "utanum" : ("utan", "um"),
+    "utanundir" : ("utan", "undir"),
+    "utanvið" : ("utan", "við"),
+    "utaná" : ("utan", "á"),
+    "vegnaþess" : ("vegna", "þess"),
+    "vestantil" : ("vestan", "til"),
+    "vestureftir" : ("vestur", "eftir"),
+    "vesturyfir" : ("vestur", "yfir"),
+    "vesturúr" : ("vestur", "úr"),
+    "vitlausumegin" : ("vitlausum", "megin"),
+    "viðkemur" : ("við", "kemur"),
+    "viðkom" : ("við", "kom"),
+    "viðkæmi" : ("við", "kæmi"),
+    "viðkæmum" : ("við", "kæmum"),
+    "víðsfjarri" : ("víðs", "fjarri"),
+    "víðsvegar" : ("víðs", "vegar"),
+    "yfirum" : ("yfir", "um"),
+    "ámeðal" : ("á", "meðal"),
+    "ámilli" : ("á", "milli"),
+    "áttahundruð" : ("átta", "hundruð"),
+    "áðuren" : ("áður", "en"),
+    "öðruhverju" : ("öðru", "hverju"),
+    "öðruhvoru" : ("öðru", "hvoru"),
+    "öðrumegin" : ("öðrum", "megin"),
+    "úrþvíað" : ("úr", "því", "að"),
+    "útaf" : ("út", "af"),
+    "útfrá" : ("út", "frá"),
+    "útfyrir" : ("út", "fyrir"),
+    "útifyrir" : ("út", "fyrir"),
+    "útivið" : ("út", "við"),
+    "útundan" : ("út", "undan"),
+    "útvið" : ("út", "við"),
+    "útá" : ("út", "á"),
+    "útávið" : ("út", "á", "við"),
+    "útí" : ("út", "í"),
+    "útúr" : ("út", "úr"),
+    "ýmiskonar" : ("ýmiss", "konar"),
+    "ýmisskonar" : ("ýmiss", "konar"),
+    "þangaðsem" : ("þangað", "sem"),
+    "þarafleiðandi" : ("þar", "af", "leiðandi"),
+    "þaraðauki" : ("þar", "að", "auki"),
+    "þareð" : ("þar", "eð"),
+    "þarmeð" : ("þar", "með"),
+    "þarsem" : ("þar", "sem"),
+    "þarsíðasta" : ("þar", "síðasta"),
+    "þarsíðustu" : ("þar", "síðustu"),
+    "þartilgerður" : ("þar", "til", "gerður"),
+    "þeimegin" : ("þeim", "megin"),
+    "þeimmegin" : ("þeim", "megin"),
+    "þessháttar" : ("þess", "háttar"),
+    "þesskonar" : ("þess", "konar"),
+    "þesskyns" : ("þess", "kyns"),
+    "þessvegna" : ("þess", "vegna"),
+    "þriðjuhlutar" : ("þriðju", "hlutar"),
+    "þrjúhundruð" : ("þrjú", "hundruð"),
+    "þrjúþúsund" : ("þrjú", "þúsund"),
+    "þvíað" : ("því", "að"),
+    "þvínæst" : ("því", "næst"),
+    "þínmegin" : ("þín", "megin"),
+    "þóað" : ("þó", "að"),    
+    }
+
+SPLIT_COMPOUNDS = {
+    ("afbragðs", "fagur") : "afbragðsfagur",
+    ("afbragðs", "góður") : "afbragðsgóður",
+    ("afbragðs", "maður") : "afbragðsmaður",
+    ("afburða", "árangur") : "afburðaárangur",
+    ("aftaka", "veður") : "aftakaveður",
+    ("al", "góður") : "algóður",
+    ("all", "góður") : "allgóður",
+    ("allsherjar", "atkvæðagreiðsla") : "allsherjaratkvæðagreiðsla",
+    ("allsherjar", "breyting") : "allsherjarbreyting",
+    ("allsherjar", "neyðarútkall") : "allsherjarneyðarútkall",
+    ("and", "stæðingur") : "andstæðingur",
+    ("auka", "herbergi") : "aukaherbergi",
+    ("auð", "sveipur") : "auðsveipur",
+    ("aðal", "inngangur") : "aðalinngangur",
+    ("aðaldyra", "megin") : "aðaldyramegin",
+    ("bakborðs", "megin") : "bakborðsmegin",
+    ("bakdyra", "megin") : "bakdyramegin",
+    ("blæja", "logn") : "blæjalogn",
+    ("brekku", "megin") : "brekkumegin",
+    ("bílstjóra", "megin") : "bílstjóramegin",
+    ("einskis", "verður") : "einskisverður",
+    ("endur", "úthluta") : "endurúthluta",
+    ("farþega", "megin") : "farþegamegin",
+    ("fjölda", "margir") : "fjöldamargir",
+    ("for", "maður") : "formaður",
+    ("forkunnar", "fagir") : "forkunnarfagur",
+    ("frum", "stæður") : "frumstæður",
+    ("full", "mikill") : "fullmikill",
+    ("furðu", "góður") : "furðugóður",
+    ("gagn", "stæður") : "gagnstæður",
+    ("gegn", "drepa") : "gegndrepa",
+    ("ger", "breyta") : "gerbreyta",
+    ("gjalda", "megin") : "gjaldamegin",
+    ("gjör", "breyta") : "gjörbreyta",
+    ("heildar", "staða") : "heildarstaða",
+    ("hlé", "megin") : "hlémegin",
+    ("hálf", "undarlegur") : "hálfundarlegur",
+    ("hálfs", "mánaðarlega") : "hálfsmánaðarlega",
+    ("hálftíma", "gangur") : "hálftímagangur",
+    ("innvortis", "blæðing") : "innvortisblæðing",
+    ("jafn", "framt") : "jafnframt",
+    ("jafn", "lyndur") : "jafnlyndur",
+    ("jafn", "vægi") : "jafnvægi",
+    ("karla", "megin") : "karlamegin",
+    ("klukkustundar", "frestur") : "klukkustundarfrestur",
+    ("kring", "um") : "kringum",
+    ("kvenna", "megin") : "kvennamegin",
+    ("lang", "stærstur") : "langstærstur",
+    ("langtíma", "aukaverkun") : "langtímaaukaverkun",
+    ("langtíma", "lán") : "langtímalán",
+    ("langtíma", "markmið") : "langtímamarkmið",
+    ("langtíma", "skuld") : "langtímaskuld",
+    ("langtíma", "sparnaður") : "langtímasparnaður",
+    ("langtíma", "spá") : "langtímaspá",
+    ("langtíma", "stefnumörkun") : "langtímastefnumörkun",
+    ("langtíma", "þróun") : "langtímaþróun",
+    ("lágmarks", "aldur") : "lágmarksaldur",
+    ("lágmarks", "fjöldi") : "lágmarksfjöldi",
+    ("lágmarks", "gjald") : "lágmarksgjald",
+    ("lágmarks", "kurteisi") : "lágmarkskurteisi",
+    ("lágmarks", "menntun") : "lágmarksmenntun",
+    ("lágmarks", "stærð") : "lágmarksstærð",
+    ("lágmarks", "áhætta") : "lágmarksáhætta",
+    ("lítils", "verður") : "lítilsverður",
+    ("marg", "oft") : "margoft",
+    ("megin", "atriði") : "meginatriði",
+    ("megin", "forsenda") : "meginforsenda",
+    ("megin", "land") : "meginland",
+    ("megin", "markmið") : "meginmarkmið",
+    ("megin", "orsök") : "meginorsök",
+    ("megin", "regla") : "meginregla",
+    ("megin", "tilgangur") : "megintilgangur",
+    ("megin", "uppistaða") : "meginuppistaða ",
+    ("megin", "viðfangsefni") : "meginviðfangsefni",
+    ("megin", "ágreiningur") : "meginágreiningur",
+    ("megin", "ákvörðun") : "meginákvörðun",
+    ("megin", "áveitukerfi") : "megináveitukerfi",
+    ("mest", "allt") : "mestallt",
+    ("mest", "allur") : "mestallur",
+    ("meðal", "aðgengi") : "meðalaðgengi",
+    ("meðal", "biðtími") : "meðalbiðtími",
+    ("meðal", "ævilengd") : "meðalævilengd",
+    ("mis", "bjóða") : "misbjóða",
+    ("mis", "breiður") : "misbreiður",
+    ("mis", "heppnaður") : "misheppnaður",
+    ("mis", "lengi") : "mislengi",
+    ("mis", "mikið") : "mismikið",
+    ("mis", "stíga") : "misstíga",
+    ("miðlungs", "beiskja") : "miðlungsbeiskja",
+    ("myndar", "drengur") : "myndardrengur",
+    ("næst", "bestur") : "næstbestur",
+    ("næst", "komandi") : "næstkomandi",
+    ("næst", "síðastur") : "næstsíðastur",
+    ("næst", "verstur") : "næstverstur",
+    ("sam", "skeyti") : "samskeyti",
+    ("saman", "stendur") : "samanstendur",
+    ("sjávar", "megin") : "sjávarmegin",
+    ("skammtíma", "skuld") : "skammtímaskuld",
+    ("skammtíma", "vistun") : "skammtímavistun",
+    ("svo", "kallaður") : "svokallaður",
+    ("sér", "framboð") : "sérframboð",
+    ("sér", "herbergi") : "sérherbergi",
+    ("sér", "inngangur") : "sérinngangur",
+    ("sér", "kennari") : "sérkennari",
+    ("sér", "staða") : "sérstaða",
+    ("sér", "stæði") : "sérstæði",
+    ("sér", "vitringur") : "sérvitringur",
+    ("sér", "íslenskur") : "séríslenskur",
+    ("sér", "þekking") : "sérþekking",
+    ("sér", "þvottahús") : "sérþvottahús",
+    ("sí", "felldur") : "sífelldur",
+    ("sólar", "megin") : "sólarmegin",
+    ("tor", "læs") : "torlæs",
+    ("undra", "góður") : "undragóður",
+    ("uppáhalds", "bragðtegund") : "uppáhaldsbragðtegund",
+    ("uppáhalds", "fag") : "uppáhaldsfag",
+    ("van", "megnugur") : "vanmegnugur",
+    ("van", "virða") : "vanvirða",
+    ("vel", "ferð") : "velferð",
+    ("vel", "kominn") : "velkominn",
+    ("vel", "megun") : "velmegun",
+    ("vel", "vild") : "velvild",
+    ("ágætis", "maður") : "ágætismaður",
+    ("áratuga", "reynsla") : "áratugareynsla",
+    ("áratuga", "skeið") : "áratugaskeið",
+    ("óhemju", "illa") : "óhemjuilla",
+    ("óhemju", "vandaður") : "óhemjuvandaður",
+    ("óskapa", "hiti") : "óskapahiti",
+    ("óvenju", "góður") : "óvenjugóður",
+    ("önd", "verður") : "öndverður",
+    ("ör", "magna") : "örmagna",
+    ("úrvals", "hveiti") : "úrvalshveiti",
+    # Split into 3 words
+    #("heils", "dags", "starf") : "heilsdagsstarf",
+    #("heils", "árs", "vegur") : "heilsársvegur",
+    #("hálfs", "dags", "starf") : "hálfsdagsstarf",
+    #("marg", "um", "talaður") : "margumtalaður",
+    #("sama", "sem", "merki") : "samasemmerki",
+    #("því", "um", "líkt") : "þvíumlíkt",
+
+}
+
+
+# Incorrectly written ordinals
+ORDINAL_ERRORS = {
+    "1sti" : "fyrsti",
+    "1sta" : "fyrsta",
+    "1stu" : "fyrstu",
+    "3ji" : "þriðji",
+    "3ja" : "þriðja",
+    "3ju" : "þriðju",
+    "4ði" : "fjórði",
+    "4ða" : "fjórða",
+    "4ðu" : "fjórðu",
+    "5ti" : "fimmti",
+    "5ta" : "fimmta",
+    "5tu" : "fimmtu",
+    "2svar" : "tvisvar",
+    "3svar" : "þrisvar",
+    "2ja" : "tveggja",
+    "3ja" : "þriggja",
+    "4ra" : "fjögurra"
+}
+
+# A = Area
+# T = Time
+# L = Length
+# C = Temperature
+# W = Weight
+# V = Volume
+SI_UNITS = {
+    "m²" : "A",
+    "fm" : "A",
+    "cm²" : "A",
+    "cm³" : "V",
+    "ltr" : "V",
+    "dl" : "V",
+    "cl" : "V",
+    "m³" : "V",
+    "°C" : "C",
+    "gr" : "W",
+    "kg" : "W",
+    "mg" : "W",
+    "μg" : "W",
+    "km" : "L",
+    "mm" : "L",
+    "cm" : "L",
+    "sm" : "L",
+}
 # Handling of Roman numerals
 
 RE_ROMAN_NUMERAL = re.compile(r"^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
@@ -242,7 +853,7 @@ PersonName = namedtuple('PersonName', ['name', 'gender', 'case'])
 
 # Named tuple for tokens
 
-Tok = namedtuple('Tok', ['kind', 'txt', 'val'])
+Tok = namedtuple('Tok', ['kind', 'txt', 'val', 'error'], )
 
 
 def correct_spaces(s):
@@ -297,6 +908,7 @@ class TOK:
     DATEREL = 19
     TIMESTAMPABS = 20
     TIMESTAMPREL = 21
+    MEASUREMENT = 22
 
     P_BEGIN = 10001 # Paragraph begin
     P_END = 10002 # Paragraph end
@@ -323,6 +935,7 @@ class TOK:
         NUMBER: "NUMBER",
         CURRENCY: "CURRENCY",
         AMOUNT: "AMOUNT",
+        MEASUREMENT: "MEASUREMENT",
         PERSON: "PERSON",
         WORD: "WORD",
         TELNO: "TELNO",
@@ -340,7 +953,7 @@ class TOK:
 
     # Token constructors
     @staticmethod
-    def Punctuation(w):
+    def Punctuation(w, error=[]):
         tp = TP_CENTER # Default punctuation type
         if w:
             if w[0] in LEFT_PUNCTUATION:
@@ -349,111 +962,115 @@ class TOK:
                 tp = TP_RIGHT
             elif w[0] in NONE_PUNCTUATION:
                 tp = TP_NONE
-        return Tok(TOK.PUNCTUATION, w, tp)
+        return Tok(TOK.PUNCTUATION, w, tp, error)
 
     @staticmethod
-    def Time(w, h, m, s):
-        return Tok(TOK.TIME, w, (h, m, s))
+    def Time(w, h, m, s, error=[]):
+        return Tok(TOK.TIME, w, (h, m, s), error)
 
     @staticmethod
-    def Date(w, y, m, d):
-        return Tok(TOK.DATE, w, (y, m, d))
+    def Date(w, y, m, d, error=[]):
+        return Tok(TOK.DATE, w, (y, m, d), error)
 
     @staticmethod
-    def Dateabs(w, y, m, d):
-        return Tok(TOK.DATEABS, w, (y, m, d))
+    def Dateabs(w, y, m, d, error=[]):
+        return Tok(TOK.DATEABS, w, (y, m, d), error)
 
     @staticmethod
-    def Daterel(w, y, m, d):
-        return Tok(TOK.DATEREL, w, (y, m, d))
+    def Daterel(w, y, m, d, error=[]):
+        return Tok(TOK.DATEREL, w, (y, m, d), error)
 
     @staticmethod
-    def Timestamp(w, y, mo, d, h, m, s):
-        return Tok(TOK.TIMESTAMP, w, (y, mo, d, h, m, s))
+    def Timestamp(w, y, mo, d, h, m, s, error=[]):
+        return Tok(TOK.TIMESTAMP, w, (y, mo, d, h, m, s), error)
    
     @staticmethod
-    def Timestampabs(w, y, mo, d, h, m, s):
-        return Tok(TOK.TIMESTAMPABS, w, (y, mo, d, h, m, s))
+    def Timestampabs(w, y, mo, d, h, m, s, error=[]):
+        return Tok(TOK.TIMESTAMPABS, w, (y, mo, d, h, m, s), error)
   
     @staticmethod
-    def Timestamprel(w, y, mo, d, h, m, s):
-        return Tok(TOK.TIMESTAMPREL, w, (y, mo, d, h, m, s))
+    def Timestamprel(w, y, mo, d, h, m, s, error=[]):
+        return Tok(TOK.TIMESTAMPREL, w, (y, mo, d, h, m, s), error)
 
     @staticmethod
-    def Year(w, n):
-        return Tok(TOK.YEAR, w, n)
+    def Year(w, n, error=[]):
+        return Tok(TOK.YEAR, w, n, error)
 
     @staticmethod
-    def Telno(w):
-        return Tok(TOK.TELNO, w, None)
+    def Telno(w, error=[]):
+        return Tok(TOK.TELNO, w, None, error)
 
     @staticmethod
-    def Email(w):
-        return Tok(TOK.EMAIL, w, None)
+    def Email(w, error=[]):
+        return Tok(TOK.EMAIL, w, None, error)
 
     @staticmethod
-    def Number(w, n, cases=None, genders=None):
+    def Number(w, n, cases=None, genders=None, error=[]):
         """ cases is a list of possible cases for this number
             (if it was originally stated in words) """
-        return Tok(TOK.NUMBER, w, (n, cases, genders))
+        return Tok(TOK.NUMBER, w, (n, cases, genders), error)
 
     @staticmethod
-    def Currency(w, iso, cases=None, genders=None):
+    def Currency(w, iso, cases=None, genders=None, error=[]):
         """ cases is a list of possible cases for this currency name
             (if it was originally stated in words, i.e. not abbreviated) """
-        return Tok(TOK.CURRENCY, w, (iso, cases, genders))
+        return Tok(TOK.CURRENCY, w, (iso, cases, genders), error)
 
     @staticmethod
-    def Amount(w, iso, n, cases=None, genders=None):
+    def Amount(w, iso, n, cases=None, genders=None, error=[]):
         """ cases is a list of possible cases for this amount
             (if it was originally stated in words) """
-        return Tok(TOK.AMOUNT, w, (n, iso, cases, genders))
+        return Tok(TOK.AMOUNT, w, (n, iso, cases, genders), error)
 
     @staticmethod
-    def Percent(w, n, cases=None, genders=None):
-        return Tok(TOK.PERCENT, w, (n, cases, genders))
+    def Measurement(w, si, n, error=[]):
+        return Tok(TOK.MEASUREMENT, w, (si, n), error)
 
     @staticmethod
-    def Ordinal(w, n):
-        return Tok(TOK.ORDINAL, w, n)
+    def Percent(w, n, cases=None, genders=None, error=[]):
+        return Tok(TOK.PERCENT, w, (n, cases, genders), error)
 
     @staticmethod
-    def Url(w):
-        return Tok(TOK.URL, w, None)
+    def Ordinal(w, n, error=[]):
+        return Tok(TOK.ORDINAL, w, n, error)
 
     @staticmethod
-    def Word(w, m):
+    def Url(w, error=[]):
+        return Tok(TOK.URL, w, None, error)
+
+    @staticmethod
+    def Word(w, m, error=[]):
         """ m is a list of BIN_Meaning tuples fetched from the BÍN database """
-        return Tok(TOK.WORD, w, m)
+        return Tok(TOK.WORD, w, m, error)
 
     @staticmethod
-    def Unknown(w):
-        return Tok(TOK.UNKNOWN, w, None)
+    def Unknown(w, error=[]):
+        return Tok(TOK.UNKNOWN, w, None, error)
 
     @staticmethod
-    def Person(w, m):
+    def Person(w, m, error=[]):
         """ m is a list of PersonName tuples: (name, gender, case) """
-        return Tok(TOK.PERSON, w, m)
+        return Tok(TOK.PERSON, w, m, error)
 
     @staticmethod
-    def Entity(w, definitions, cases=None, genders=None):
-        return Tok(TOK.ENTITY, w, (definitions, cases, genders))
+    def Entity(w, definitions, cases=None, genders=None, error=[]):
+        return Tok(TOK.ENTITY, w, (definitions, cases, genders), error)
 
     @staticmethod
     def Begin_Paragraph():
-        return Tok(TOK.P_BEGIN, None, None)
+        return Tok(TOK.P_BEGIN, None, None, error=[])
 
     @staticmethod
     def End_Paragraph():
-        return Tok(TOK.P_END, None, None)
+        return Tok(TOK.P_END, None, None, error=[])
 
     @staticmethod
     def Begin_Sentence(num_parses = 0, err_index = None):
-        return Tok(TOK.S_BEGIN, None, (num_parses, err_index))
+        return Tok(TOK.S_BEGIN, None, (num_parses, err_index), error=[])
 
     @staticmethod
     def End_Sentence():
-        return Tok(TOK.S_END, None, None)
+        return Tok(TOK.S_END, None, None, error=[])
 
 
 def is_valid_date(y, m, d):
@@ -478,7 +1095,7 @@ def parse_digits(w):
         m = int(p[1])
         sec = int(p[2])
         if (0 <= h < 24) and (0 <= m < 60) and (0 <= sec < 60):
-            return TOK.Time(w, h, m, sec), s.end()
+            return TOK.Time(w, h, m, sec, error=[]), s.end()
     s = re.match(r'\d{1,2}:\d\d', w)
     if s:
         # Looks like a 24-hour clock, H:M
@@ -487,7 +1104,7 @@ def parse_digits(w):
         h = int(p[0])
         m = int(p[1])
         if (0 <= h < 24) and (0 <= m < 60):
-            return TOK.Time(w, h, m, 0), s.end()
+            return TOK.Time(w, h, m, 0, error=[]), s.end()
     s = re.match(r'\d{1,2}\.\d{1,2}\.\d{2,4}', w) or re.match(r'\d{1,2}/\d{1,2}/\d{2,4}', w)
     if s:
         # Looks like a date
@@ -506,7 +1123,7 @@ def parse_digits(w):
             # Probably wrong way around
             m, d = d, m
         if is_valid_date(y, m, d):
-            return TOK.Date(w, y, m, d), s.end()
+            return TOK.Date(w, y, m, d, error=[]), s.end()
     s = re.match(r'\d+(\.\d\d\d)*,\d+', w)
     if s:
         # Real number formatted with decimal comma and possibly thousands separator
@@ -514,14 +1131,14 @@ def parse_digits(w):
         w = s.group()
         n = re.sub(r'\.', '', w) # Eliminate thousands separators
         n = re.sub(r',', '.', n) # Convert decimal comma to point
-        return TOK.Number(w, float(n)), s.end()
+        return TOK.Number(w, float(n), error=[]), s.end()
     s = re.match(r'\d+(\.\d\d\d)+', w)
     if s:
         # Integer with a '.' thousands separator
         # (we need to check this before checking dd.mm dates)
         w = s.group()
         n = re.sub(r'\.', '', w) # Eliminate thousands separators
-        return TOK.Number(w, int(n)), s.end()
+        return TOK.Number(w, int(n), error=[]), s.end()
     s = re.match(r'\d{1,2}/\d{1,2}', w)
     if s and (s.end() >= len(w) or w[s.end()] not in DIGITS):
         # Looks like a date (and not something like 10/2007)
@@ -533,62 +1150,92 @@ def parse_digits(w):
             # This is probably a fraction, not a date
             # (1/2, 1/3, 1/4, 1/5, 1/6, 2/3, 2/5, 5/6 etc.)
             # Return a number
-            return TOK.Number(w, float(d) / m), s.end()
+            return TOK.Number(w, float(d) / m, error=[]), s.end()
         if m > 12 >= d:
             # Date is probably wrong way around
             m, d = d, m
         if (1 <= d <= 31) and (1 <= m <= 12):
             # Looks like a (roughly) valid date
-            return TOK.Date(w, 0, m, d), s.end()
+            return TOK.Date(w, 0, m, d, error=[]), s.end()
     s = re.match(r'\d\d\d\d$', w) or re.match(r'\d\d\d\d[^\d]', w)
     if s:
         n = int(w[0:4])
         if 1776 <= n <= 2100:
             # Looks like a year
-            return TOK.Year(w[0:4], n), 4
-    s = re.match(r'\d\d\d-\d\d\d\d', w) or re.match(r'\d\d\d\d\d\d\d', w)
+            return TOK.Year(w[0:4], n, error=[]), 4
+    s = re.match(r'\d\d\d-\d\d\d\d', w)
     if s:
         # Looks like a telephone number
-        return TOK.Telno(s.group()), s.end()
+        return TOK.Telno(s.group(), error=[]), s.end()
+    s = re.match(r'\d\d\d\d\d\d\d', w)
+    if s:
+        # Looks like a telephone number
+        return TOK.Telno(s.group()[:3] +"-" + s.group()[3:], error=[]), s.end()
+
     s = re.match(r'\d+\.\d+(\.\d+)+', w)
     if s:
         # Some kind of ordinal chapter number: 2.5.1 etc.
         # (we need to check this before numbers with decimal points)
         w = s.group()
         n = re.sub(r'\.', '', w) # Eliminate dots, 2.5.1 -> 251
-        return TOK.Ordinal(w, int(n)), s.end()
+        return TOK.Ordinal(w, int(n), error=[]), s.end()
     s = re.match(r'\d+(,\d\d\d)*\.\d+', w)
     if s:
         # Real number, possibly with a thousands separator and decimal comma/point
         w = s.group()
         n = re.sub(r',', '', w) # Eliminate thousands separators
-        return TOK.Number(w, float(n)), s.end()
+        w = re.sub(r'\.', ',', w)   # Change decimal point separator to a comma, GrammCorr 1N
+        return TOK.Number(w, float(n), error=[]), s.end()
     s = re.match(r'\d+(,\d\d\d)*', w)
     if s:
         # Integer, possibly with a ',' thousands separator
         w = s.group()
         n = re.sub(r',', '', w) # Eliminate thousands separators
-        return TOK.Number(w, int(n)), s.end()
+        return TOK.Number(w, int(n), error=[]), s.end()
     # Strange thing
-    return TOK.Unknown(w), len(w)
+    return TOK.Unknown(w, error=[]), len(w)
 
 
 def parse_tokens(txt):
     """ Generator that parses contiguous text into a stream of tokens """
     rough = txt.split()
-
+    QM = False # Check if quotation marks on both ends of word    
     for w in rough:
+        QM = False
         # Handle each sequence of non-whitespace characters
-
-        if w.isalpha():
+        if w.isalpha() or w in SI_UNITS:
             # Shortcut for most common case: pure word
-            yield TOK.Word(w, None)
+            yield TOK.Word(w, None, error=[])
             continue
 
         # More complex case of mixed punctuation, letters and numbers
+        
+        if len(w) > 2 and w[0] in DQUOTES and w[-1] in DQUOTES:
+            # Convert to matching Icelandic quotes
+            QM = True
+            yield TOK.Punctuation('„', error=[])
+            if w[1:-1].isalpha():
+                yield TOK.Word(w[1:-1], None, error=[])
+                yield TOK.Punctuation('“', error=[])
+                QM = False
+                continue
+            else:
+                w = w[1:-1] + '“'
+        if len(w) > 2 and w[0] in SQUOTES and w[-1] in SQUOTES:
+            # Convert to matching Icelandic quotes
+            QM = True
+            yield TOK.Punctuation('‚', error=[1])
+            if w[1:-1].isalpha():
+                yield TOK.Word(w[1:-1], None, error=[])
+                yield TOK.Punctuation('‘', error=[1])
+                QM = False
+                continue
+            else:
+                w = w[1:-1] + '‘'
+        
         if len(w) > 1 and w[0] == '"':
             # Convert simple quotes to proper opening quotes
-            yield TOK.Punctuation('„')
+            yield TOK.Punctuation('„', error=[1])
             w = w[1:]
 
         while w:
@@ -597,18 +1244,22 @@ def parse_tokens(txt):
             while w and w[0] in PUNCTUATION:
                 ate = True
                 if w.startswith("[...]"):
-                    yield TOK.Punctuation("[…]")
+                    yield TOK.Punctuation("[…]", error=[])
                     w = w[5:]
                 elif w.startswith("[…]"):
-                    yield TOK.Punctuation("[…]")
+                    yield TOK.Punctuation("[…]", error=[])
                     w = w[3:]
                 elif w.startswith("..."):
                     # Treat ellipsis as one piece of punctuation
-                    yield TOK.Punctuation("…")
+                    yield TOK.Punctuation("…", error=[])
                     w = w[3:]
+                elif w == ",,":
+                    # Was at the end of a word or by itself, should be ",". GrammCorr 1K
+                    yield TOK.Punctuation(',', error=[2])  
+                    w = w[2:]
                 elif w.startswith(",,"):
                     # Probably an idiot trying to type opening double quotes with commas
-                    yield TOK.Punctuation('„')
+                    yield TOK.Punctuation('„', error=[1])
                     w = w[2:]
                 elif len(w) == 2 and (w == "[[" or w == "]]"):
                     # Begin or end paragraph marker
@@ -624,12 +1275,21 @@ def parse_tokens(txt):
                     # Any sequence of hyphens is treated as a single hyphen
                     while w and w[0] in HYPHENS:
                         w = w[1:]
+                elif w == '”':
+                    w = '“'
+                    continue
+                elif w == "'":
+                    # Left with a single quote, convert to proper closing quote
+                    w = "‘"
+                    continue
                 else:
-                    yield TOK.Punctuation(w[0])
+                    yield TOK.Punctuation(w[0], error=[])
                     w = w[1:]
                 if w == '"':
                     # We're left with a simple double quote: Convert to proper closing quote
-                    w = '”'
+                    w = '“'
+                    continue
+
             if w and '@' in w:
                 # Check for valid e-mail
                 # Note: we don't allow double quotes (simple or closing ones) in e-mails here
@@ -637,16 +1297,20 @@ def parse_tokens(txt):
                 s = re.match(r"[^@\s]+@[^@\s]+(\.[^@\s\.,/:;\"”]+)+", w)
                 if s:
                     ate = True
-                    yield TOK.Email(s.group())
+                    yield TOK.Email(s.group(), error=[])
                     w = w[s.end():]
             # Numbers or other stuff starting with a digit
             if w and w[0] in DIGITS:
-                ate = True
-                t, eaten = parse_digits(w)
-                yield t
-                # Continue where the digits parser left off
-                w = w[eaten:]
-            if w and w.startswith("http://") or w.startswith("https://"):
+                if w in ORDINAL_ERRORS: # GrammCorr 1P
+                    w = ORDINAL_ERRORS[w]
+                    continue
+                else:
+                    ate = True
+                    t, eaten = parse_digits(w)
+                    yield t
+                    # Continue where the digits parser left off
+                    w = w[eaten:]
+            if w and w.startswith("http://") or w.startswith("https://") or w.startswith("www"):
                 # Handle URL: cut RIGHT_PUNCTUATION characters off its end,
                 # even though many of them are actually allowed according to
                 # the IETF RFC
@@ -654,9 +1318,10 @@ def parse_tokens(txt):
                 while w and w[-1] in RIGHT_PUNCTUATION:
                     endp = w[-1] + endp
                     w = w[:-1]
-                yield TOK.Url(w)
+                yield TOK.Url(w, error=[])
                 ate = True
                 w = endp
+
             # Alphabetic characters
             if w and w[0].isalpha():
                 ate = True
@@ -672,32 +1337,41 @@ def parse_tokens(txt):
                 a = w.split('.')
                 if len(a) == 2 and a[0] and a[0][0].islower() and a[1] and a[1][0].isupper():
                     # We have a lowercase word immediately followed by a period and an uppercase word
-                    yield TOK.Word(a[0], None)
-                    yield TOK.Punctuation('.')
-                    yield TOK.Word(a[1], None)
+                    yield TOK.Word(a[0], None, error=[])
+                    yield TOK.Punctuation('.', error=[])
+                    yield TOK.Word(a[1], None, error=[3])
                     w = None
                 else:
                     while w[i-1] == '.':
                         # Don't eat periods at the end of words
                         i -= 1
-                    yield TOK.Word(w[0:i], None)
+                    yield TOK.Word(w[0:i], None, error=[])
                     w = w[i:]
                     if w and w[0] in COMPOSITE_HYPHENS:
                         # This is a hyphen or en dash directly appended to a word:
                         # might be a continuation ('fjármála- og efnahagsráðuneyti')
                         # Yield a special hyphen as a marker
-                        yield TOK.Punctuation(COMPOSITE_HYPHEN)
+                        yield TOK.Punctuation(COMPOSITE_HYPHEN, error=[])
                         w = w[1:]
+                    if QM:
+                        if w[:-1].isalpha():
+                            yield TOK.Word(w[:-1], None, error=[])
+                            if w[-1] in SQUOTES:
+                                yield TOK.Punctuation('‘', error=[])
+                            elif q[-1] in DQUOTES:
+                                yield TOK.Punctuation('“', error=[])
+                            else:
+                                pass
+                            QM = False
             if not ate:
                 # Ensure that we eat everything, even unknown stuff
-                yield TOK.Unknown(w[0])
+                yield TOK.Unknown(w[0], error=[])
                 w = w[1:]
             # We have eaten something from the front of the raw token.
             # Check whether we're left with a simple double quote,
             # in which case we convert it to a proper closing double quote
             if w and w[0] == '"':
-                w = '”' + w[1:]
-
+                w = '“' + w[1:]
 
 def parse_particles(token_stream):
     """ Parse a stream of tokens looking for 'particles'
@@ -734,14 +1408,14 @@ def parse_particles(token_stream):
             if token.kind == TOK.PUNCTUATION and token.txt == '$' and \
                 next_token.kind == TOK.NUMBER:
 
-                token = TOK.Amount(token.txt + next_token.txt, "USD", next_token.val[0]) # Unknown gender
+                token = TOK.Amount(token.txt + next_token.txt, "USD", next_token.val[0], error=[token.error, next_token.error]) # Unknown gender
                 next_token = next(token_stream)
 
             # Check for €[number]
             if token.kind == TOK.PUNCTUATION and token.txt == '€' and \
                 next_token.kind == TOK.NUMBER:
 
-                token = TOK.Amount(token.txt + next_token.txt, "EUR", next_token.val[0]) # Unknown gender
+                token = TOK.Amount(token.txt + next_token.txt, "EUR", next_token.val[0], error=[token.error, next_token.error]) # Unknown gender
                 next_token = next(token_stream)
 
             # Coalesce abbreviations ending with a period into a single
@@ -779,7 +1453,7 @@ def parse_particles(token_stream):
                             # to be starting just after it.
                             # Yield the abbreviation without a trailing dot,
                             # and then an 'extra' period token to end the current sentence.
-                            token = TOK.Word("[" + token.txt + "]", None)
+                            token = TOK.Word("[" + token.txt + "]", None, error=[])
                             yield token
                             token = next_token
                         elif abbrev in Abbreviations.NOT_FINISHERS:
@@ -789,11 +1463,11 @@ def parse_particles(token_stream):
                             token = next_token
                         else:
                             # Substitute the abbreviation and eat the period
-                            token = TOK.Word("[" + token.txt + ".]", None)
+                            token = TOK.Word("[" + token.txt + ".]", None, error=[])
                     else:
                         # 'Regular' abbreviation in the middle of a sentence:
                         # swallow the period and yield the abbreviation as a single token
-                        token = TOK.Word("[" + token.txt + ".]", None)
+                        token = TOK.Word("[" + token.txt + ".]", None, error=[])
 
                     next_token = follow_token
 
@@ -802,34 +1476,34 @@ def parse_particles(token_stream):
                 if clock or (token.kind == TOK.WORD and token.txt.lower() == CLOCK_WORD):
                     # Match: coalesce and step to next token
                     if next_token.kind == TOK.NUMBER:
-                        token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, next_token.val[0], 0, 0)
+                        token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, next_token.val[0], 0, 0, error=compound_error([token.error, next_token.error]))
                     else:
                         token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt,
-                            next_token.val[0], next_token.val[1], next_token.val[2])
+                            next_token.val[0], next_token.val[1], next_token.val[2], error=compound_error([token.error, next_token.error]))
                     next_token = next(token_stream)
 
             # Coalesce 'klukkan/kl. átta/hálfátta' into a time
             if next_token.txt in CLOCK_NUMBERS and (clock or (token.kind == TOK.WORD and token.txt.lower() == CLOCK_WORD)):
                 # Match: coalesce and step to next token
-                token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, *CLOCK_NUMBERS[next_token.txt])
+                token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, *CLOCK_NUMBERS[next_token.txt], error=compound_error([token.error, next_token.error]))
                 next_token = next(token_stream)
             # Words like 'hálftólf' only used in temporal expressions so can stand alone
             if token.txt in CLOCK_HALF:
-                token = TOK.Time(token.txt, *CLOCK_NUMBERS[token.txt])
+                token = TOK.Time(token.txt, *CLOCK_NUMBERS[token.txt], error=token.error)
 
             # Coalesce 'árið' + [year|number] into year
             if (token.kind == TOK.WORD and (token.txt == "árið" or token.txt == "ársins" or token.txt == "árinu")) and (next_token.kind == TOK.YEAR or next_token.kind == TOK.NUMBER):
-                token = TOK.Year(token.txt + " " + next_token.txt, next_token.txt)
+                token = TOK.Year(token.txt + " " + next_token.txt, next_token.txt, error=compound_error([token.error, next_token.error]))
                 next_token = next(token_stream)
 
             # Coalesce [year|number] + ['e.Kr.'|'f.Kr.'] into year
             if token.kind == TOK.YEAR or (token.kind == TOK.NUMBER):
                 val = int(token.val) if token.kind == TOK.YEAR else token.val[0] if token.kind == TOK.NUMBER else 0
                 if next_token.txt == "f.Kr":
-                    token = TOK.Year(token.txt + " " + next_token.txt, -int(val))
+                    token = TOK.Year(token.txt + " " + next_token.txt, -int(val), error=compound_error([token.error, next_token.error]))
                     next_token = next(token_stream)
                 elif next_token.txt == "e.Kr":
-                    token = TOK.Year(token.txt + " " + next_token.txt, val)
+                    token = TOK.Year(token.txt + " " + next_token.txt, val, error=compound_error([token.error, next_token.error]))
                     next_token = next(token_stream)
 
             # Coalesce percentages into a single token
@@ -837,7 +1511,7 @@ def parse_particles(token_stream):
                 if token.kind == TOK.NUMBER:
                     # Percentage: convert to a percentage token
                     # In this case, there are no cases and no gender
-                    token = TOK.Percent(token.txt + '%', token.val[0])
+                    token = TOK.Percent(token.txt + '%', token.val[0], error=token.error)
                     next_token = next(token_stream)
 
             # Coalesce ordinals (1. = first, 2. = second...) into a single token
@@ -860,11 +1534,13 @@ def parse_particles(token_stream):
                     else:
                         # OK: replace the number/Roman numeral and the period with an ordinal token
                         num = token.val[0] if token.kind == TOK.NUMBER else roman_to_int(token.txt)
-                        token = TOK.Ordinal(token.txt + '.', num)
+                        token = TOK.Ordinal(token.txt + '.', num, error=token.error)
                         # Continue with the following word
                         next_token = follow_token
 
-
+            if token.kind == TOK.NUMBER and next_token.txt in SI_UNITS:
+                token = TOK.Measurement(token.txt + " " + next_token.txt, SI_UNITS[next_token.txt], token.val, error=compound_error([token.error, next_token.error]))
+                next_token = next(token_stream)
             # Yield the current token and advance to the lookahead
             yield token
             token = next_token
@@ -941,6 +1617,67 @@ def parse_sentences(token_stream):
         yield tok_end_sentence
 
 
+def parse_errors_1(token_stream):
+    token = None
+    try:
+        # Maintain a one-token lookahead
+        token = next(token_stream)
+        while True:
+            next_token = next(token_stream)
+            # Make the lookahead checks we're interested in
+
+            # Word reduplication; GrammCorr 1B
+            if token == next_token and token.txt not in ALLOWED_MULTIPLES and token.kind == TOK.WORD:
+                # coalesce and step to next token
+                next_token = TOK.Word(next_token.txt, None, error=compound_error([[2], token.error, next_token.error]))
+                token = next_token
+                continue
+            # Splitting wrongly compounded words; GrammCorr 1A
+            if token.txt and token.txt.lower() in NOT_COMPOUNDS:
+                for phrase_part in NOT_COMPOUNDS[token.txt.lower()]:
+                    new_token = TOK.Word(phrase_part, None, error=4)
+                    yield new_token
+                token.error.append(4)
+                token = next_token
+                continue
+
+            # Unite wrongly split compounds; GrammCorr 1X
+            if (token.txt, next_token.txt) in SPLIT_COMPOUNDS:
+                token = TOK.Word(token.txt + next_token.txt, None, error=compound_error([token.error, [5], next_token.error]))
+                continue
+
+            # Yield the current token and advance to the lookahead
+            yield token
+            token = next_token
+
+
+
+    except StopIteration:
+        # Final token (previous lookahead)
+        if token:
+            yield token
+
+
+def test(token_stream): 
+    token = None
+    try:
+        # Maintain a one-token lookahead
+        token = next(token_stream)
+        while True:
+            yield token
+            token = next(token_stream)
+    except StopIteration:
+        # Final token (previous lookahead)
+        if token:
+            yield token
+
+def compound_error(toks):
+    comp_err = []
+    for alist in toks:
+        if alist:
+            comp_err.extend(alist)
+    return comp_err
+
 def annotate(token_stream, auto_uppercase):
     """ Look up word forms in the BIN word database. If auto_uppercase
         is True, change lower case words to uppercase if it looks likely
@@ -963,7 +1700,7 @@ def annotate(token_stream, auto_uppercase):
                 # Look up word in BIN database
                 w, m = db.lookup_word(t.txt, at_sentence_start, auto_uppercase)
                 # Yield a word tuple with meanings
-                yield TOK.Word(w, m)
+                yield TOK.Word(w, m, error=[])
             else:
                 # Already have a meaning
                 yield t
@@ -1237,7 +1974,6 @@ def parse_phrases_1(token_stream):
             token = next(token_stream)
             while True:
                 next_token = next(token_stream)
-
                 # Logic for numbers and fractions that are partially or entirely
                 # written out in words
 
@@ -1265,7 +2001,7 @@ def parse_phrases_1(token_stream):
                     def convert_to_num(token):
                         if multiplier is not None:
                             token = TOK.Number(token.txt, multiplier,
-                                all_cases(token), all_genders(token))
+                                all_cases(token), all_genders(token), error=token.error)
                         return token
 
                     if multiplier_next is not None:
@@ -1283,7 +2019,7 @@ def parse_phrases_1(token_stream):
                         token = convert_to_num(token)
                         token = TOK.Number(token.txt + " " + next_token.txt,
                             token.val[0] * multiplier_next,
-                            next_case, next_gender)
+                            next_case, next_gender, error=compound_error([token.error, next_token.error]))
                         # Eat the multiplier token
                         next_token = next(token_stream)
                     elif next_token.txt in AMOUNT_ABBREV:
@@ -1293,7 +2029,7 @@ def parse_phrases_1(token_stream):
                         token = convert_to_num(token)
                         token = TOK.Amount(token.txt + " " + next_token.txt, "ISK",
                             token.val[0] * AMOUNT_ABBREV[next_token.txt], # Number
-                            token.val[1], token.val[2]) # Cases and gender
+                            token.val[1], token.val[2], error=compound_error([token.error, next_token.error])) # Cases and gender (and error type)
                         next_token = next(token_stream)
                     else:
                         # Check for [number] 'percent'
@@ -1301,7 +2037,7 @@ def parse_phrases_1(token_stream):
                         if percentage is not None:
                             token = convert_to_num(token)
                             token = TOK.Percent(token.txt + " " + next_token.txt, token.val[0],
-                                all_cases(next_token), all_genders(next_token))
+                                all_cases(next_token), all_genders(next_token), error=compound_error([token.error, next_token.error]))
                             # Eat the percentage token
                             next_token = next(token_stream)
                         else:
@@ -1314,7 +2050,7 @@ def parse_phrases_1(token_stream):
                     month = match_stem_list(next_token, MONTHS)
                     if month is not None:
                         token = TOK.Date(token.txt + " " + next_token.txt, y = 0, m = month,
-                            d = token.val if token.kind == TOK.ORDINAL else token.val[0] if token.kind == TOK.ORDINAL else DAYS_OF_MONTH[token.txt])
+                            d = token.val if token.kind == TOK.ORDINAL else token.val[0] if token.kind == TOK.ORDINAL else DAYS_OF_MONTH[token.txt], error=compound_error([token.error, next_token.error]))
                         # Eat the month name token
                         next_token = next(token_stream)
 
@@ -1324,7 +2060,7 @@ def parse_phrases_1(token_stream):
                         # No year yet: add it
                         year = next_token.val if next_token.kind == TOK.YEAR else int(next_token.txt) if 1776 <= int(next_token.txt) <= 2100 else 0
                         token = TOK.Date(token.txt + " " + next_token.txt,
-                            y = year, m = token.val[1], d = token.val[2])
+                            y = year, m = token.val[1], d = token.val[2], error=compound_error([token.error, next_token.error]))
                         # Eat the year token
                         next_token = next(token_stream)
 
@@ -1333,7 +2069,7 @@ def parse_phrases_1(token_stream):
                     month = match_stem_list(token, MONTHS)
                     if month is not None:
                         year = next_token.val if next_token.kind == TOK.YEAR else int(next_token.txt) if 1776 <= int(next_token.txt) <= 2100 else 0
-                        token = TOK.Date(token.txt + " " + next_token.txt, y = year, m = month, d = 0)
+                        token = TOK.Date(token.txt + " " + next_token.txt, y = year, m = month, d = 0, error=compound_error([token.error, next_token.error]))
                         # Eat the year token
                         next_token = next(token_stream)
 
@@ -1345,14 +2081,14 @@ def parse_phrases_1(token_stream):
                 if token.kind == TOK.WORD:
                     month = match_stem_list(token, MONTHS)
                     if month is not None:
-                        token = TOK.Daterel(token.txt, y = 0, m = month, d = 0)
+                        token = TOK.Daterel(token.txt, y = 0, m = month, d = 0, error=token.error)
 
                 # Split DATE into DATEABS and DATEREL
                 if token.kind == TOK.DATE:
                     if token.val[0] and token.val[1] and token.val[2]:
-                        token = TOK.Dateabs(token.txt, y = token.val[0], m = token.val[1], d = token.val[2])
+                        token = TOK.Dateabs(token.txt, y = token.val[0], m = token.val[1], d = token.val[2], error=token.error)
                     else:
-                        token = TOK.Daterel(token.txt, y = token.val[0], m = token.val[1], d = token.val[2])
+                        token = TOK.Daterel(token.txt, y = token.val[0], m = token.val[1], d = token.val[2], error=token.error)
 
                 # Check for [date] [time] (absolute)
                 if token.kind == TOK.DATEABS and next_token.kind == TOK.TIME:
@@ -1360,7 +2096,7 @@ def parse_phrases_1(token_stream):
                     y, mo, d = token.val
                     h, m, s = next_token.val
                     token = TOK.Timestampabs(token.txt + " " + next_token.txt,
-                        y = y, mo = mo, d = d, h = h, m = m, s = s)
+                        y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
                     # Eat the time token
                     next_token = next(token_stream)
                 # Check for [date] [time] (relative)
@@ -1369,7 +2105,7 @@ def parse_phrases_1(token_stream):
                     y, mo, d = token.val
                     h, m, s = next_token.val
                     token = TOK.Timestamprel(token.txt + " " + next_token.txt,
-                        y = y, mo = mo, d = d, h = h, m = m, s = s)
+                        y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
                     # Eat the time token
                     next_token = next(token_stream)
                 
@@ -1385,7 +2121,7 @@ def parse_phrases_1(token_stream):
                                 token = TOK.Currency(token.txt + " "  + next_token.txt,
                                     ISO_CURRENCIES[(nat, cur)],
                                     all_common_cases(token, next_token),
-                                    all_genders(next_token))
+                                    all_genders(next_token), error=compound_error([token.error, next_token.error]))
                                 next_token = next(token_stream)
 
                 # Check for composites:
@@ -1404,7 +2140,7 @@ def parse_phrases_1(token_stream):
                             if token.txt.lower() in ADJECTIVE_PREFIXES:
                                 # hálf-opinberri, marg-ítrekaðri
                                 token = TOK.Word(composite,
-                                    [m for m in og_token.val if m.ordfl == "lo" or m.ordfl == "ao"])
+                                    [m for m in og_token.val if m.ordfl == "lo" or m.ordfl == "ao"], error=compound_error([token.error, next_token.error]))
                                 next_token = next(token_stream)
                                 handled = True
                             else:
@@ -1412,13 +2148,13 @@ def parse_phrases_1(token_stream):
                                 m = db.meanings(composite)
                                 if m:
                                     # Found composite in BÍN: return it as a single token
-                                    token = TOK.Word(composite, m)
+                                    token = TOK.Word(composite, m, error=compound_error([token.error, next_token.error]))
                                     next_token = next(token_stream)
                                     handled = True
                         if not handled:
                             yield token
                             # Put a normal hyphen instead of the composite one
-                            token = TOK.Punctuation(HYPHEN)
+                            token = TOK.Punctuation(HYPHEN, error=token.error)
                             next_token = og_token
                     else:
                         # We have 'viðskipta- og'
@@ -1426,7 +2162,7 @@ def parse_phrases_1(token_stream):
                         if final_token.kind != TOK.WORD:
                             # Incorrect: unwind
                             yield token
-                            yield TOK.Punctuation(HYPHEN) # Normal hyphen
+                            yield TOK.Punctuation(HYPHEN, error=[]) # Normal hyphen
                             token = og_token
                             next_token = final_token
                         else:
@@ -1437,7 +2173,7 @@ def parse_phrases_1(token_stream):
                             # part of the composition, so it can be an unknown word.
                             txt = token.txt + "- " + og_token.txt + \
                                 " " + final_token.txt
-                            token = TOK.Word(txt, final_token.val)
+                            token = TOK.Word(txt, final_token.val, error=compound_error([token.error, next_token.error, final_token.error]))
                             next_token = next(token_stream)
 
                 # Yield the current token and advance to the lookahead
@@ -1509,7 +2245,7 @@ def parse_phrases_2(token_stream):
                     # Create an amount
                     # Use the case and gender information from the number, if any
                     token = TOK.Amount(token.txt + " " + next_token.txt,
-                        cur, token.val[0], cases, genders)
+                        cur, token.val[0], cases, genders, error=compound_error([token.error, next_token.error]))
                     # Eat the currency token
                     next_token = next(token_stream)
 
@@ -1519,7 +2255,7 @@ def parse_phrases_2(token_stream):
                 h, m, s = token.val
                 y, mo, d = next_token.val
                 token = TOK.Timestampabs(token.txt + " " + next_token.txt,
-                    y = y, mo = mo, d = d, h = h, m = m, s = s)
+                    y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
                 # Eat the time token
                 next_token = next(token_stream)
 
@@ -1529,7 +2265,7 @@ def parse_phrases_2(token_stream):
                 h, m, s = token.val
                 y, mo, d = next_token.val
                 token = TOK.Timestamprel(token.txt + " " + next_token.txt,
-                    y = y, mo = mo, d = d, h = h, m = m, s = s)
+                    y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
                 # Eat the time token
                 next_token = next(token_stream)
 
@@ -1640,7 +2376,7 @@ def parse_phrases_2(token_stream):
             if token.kind == TOK.WORD and token.val and token.val[0].fl == "nafn":
                 # Convert a WORD with fl="nafn" to a PERSON with the correct gender, in all cases
                 gender = token.val[0].ordfl
-                token = TOK.Person(token.txt, [ PersonName(token.txt, gender, case) for case in ALL_CASES ])
+                token = TOK.Person(token.txt, [ PersonName(token.txt, gender, case) for case in ALL_CASES ], error=token.error)
                 gn = None
             else:
                 gn = given_names(token)
@@ -1755,7 +2491,7 @@ def parse_phrases_2(token_stream):
                 if not weak:
                     # Return a person token with the accumulated name
                     # and the intersected set of possible cases
-                    token = TOK.Person(w, gn)
+                    token = TOK.Person(w, gn, error=token.error)
 
             # Yield the current token and advance to the lookahead
             yield token
@@ -1836,14 +2572,16 @@ def parse_static_phrases(token_stream, auto_uppercase):
                             # that was not completed: yield them first
                             yield tq.pop(0)
                         w = " ".join([ t.txt for t in tq ])
+                        werr = [ t.error for t in tq ]
                         # Add the entire phrase as one 'word' to the token queue
                         yield TOK.Word(w,
                             [ BIN_Meaning._make(r)
-                                for r in StaticPhrases.get_meaning(ix) ])
+                                for r in StaticPhrases.get_meaning(ix) ], error=werr)
                         # Discard the state and start afresh
                         newstate = defaultdict(list)
                         w = wo = ""
                         tq = []
+                        werr = []
                         # Note that it is possible to match even longer phrases
                         # by including a starting phrase in its entirety in
                         # the static phrase dictionary
@@ -1875,7 +2613,7 @@ def parse_static_phrases(token_stream, auto_uppercase):
                         # Yield the replacement token
                         yield TOK.Word(token.txt,
                             [ BIN_Meaning._make(r)
-                                for r in StaticPhrases.get_meaning(ix) ])
+                                for r in StaticPhrases.get_meaning(ix) ], error=[])
                         newstate = defaultdict(list)
                         token = None
                         break
@@ -1953,9 +2691,9 @@ def disambiguate_phrases(token_stream):
                                 # Handle prepositions specially, since we may have additional
                                 # preps defined in Main.conf that don't have fs meanings in BÍN
                                 w = t.txt.lower()
-                                yield TOK.Word(t.txt, [ BIN_Meaning(w, 0, "fs", "alm", w, "-") ])
+                                yield TOK.Word(t.txt, [ BIN_Meaning(w, 0, "fs", "alm", w, "-") ], error=[])
                             else:
-                                yield TOK.Word(t.txt, [m for m in t.val if m.ordfl == cat])
+                                yield TOK.Word(t.txt, [m for m in t.val if m.ordfl == cat], error=[])
 
                         # Discard the state and start afresh
                         if newstate:
@@ -2046,9 +2784,10 @@ def recognize_entities(token_stream, enclosing_session = None):
                 return token_or_entity(tq[0])
             # Reconstruct original text behind phrase
             ename = " ".join([t.txt for t in tq])
+            origerror = [t.error for t in tq]
             # We don't include the definitions in the token - they should be looked up
             # on the fly when processing or displaying the parsed article
-            return TOK.Entity(ename, None)
+            return TOK.Entity(ename, None, error=origerror)
 
         def token_or_entity(token):
             """ Return a token as-is or, if it is a last name of a person that has already
@@ -2062,9 +2801,9 @@ def recognize_entities(token_stream, enclosing_session = None):
                 # Return an entity token with no definitions
                 # (this will eventually need to be looked up by full name when
                 # displaying or processing the article)
-                return TOK.Entity(token.txt, None)
+                return TOK.Entity(token.txt, None, error=token.error)
             # Return the full name meanings
-            return TOK.Person(token.txt, tfull.val)
+            return TOK.Person(token.txt, tfull.val, error=token.error)
 
         try:
 
@@ -2110,7 +2849,7 @@ def recognize_entities(token_stream, enclosing_session = None):
                             del lastnames[p]
                     if parts[-1][0].isupper():
                         # 'Clinton' -> 'Hillary Rodham Clinton'
-                        lastnames[parts[-1]] = TOK.Entity(fullname, None)
+                        lastnames[parts[-1]] = TOK.Entity(fullname, None, error=token.error)
                 else:
                     # Not a match for an expected token
                     if state:
@@ -2210,11 +2949,10 @@ def recognize_entities(token_stream, enclosing_session = None):
 def raw_tokenize(text):
     """ Tokenize text up to but not including the BÍN annotation pass """
     token_stream = parse_tokens(text)
-    st = token_stream
     token_stream = parse_particles(token_stream)
-    st = token_stream
     token_stream = parse_sentences(token_stream)
-    st = token_stream
+    token_stream = parse_errors_1(token_stream)
+    token_stream = test(token_stream)
     return token_stream
 
 
@@ -2243,6 +2981,9 @@ def tokenize(text, auto_uppercase = False, enclosing_session = None):
 
      # Eliminate very uncommon meanings
     token_stream = disambiguate_phrases(token_stream)
+
+    token_stream = test_2(token_stream)
+
 
     return token_stream
 
@@ -2414,3 +3155,20 @@ def stems_of_token(t):
         return [ (stem, "entity") ]
     return []
 
+def test_2(token_stream):
+
+    """ Parse a stream of tokens looking for phrases and making substitutions.
+        Second pass
+    """
+    token = None
+    try:
+        while True:
+            token = next(token_stream)
+            if token.txt:
+                print("T2-error:{}-{}".format(token.txt, token.error))
+            yield token
+
+    except StopIteration:
+        pass
+    if token:
+        yield token

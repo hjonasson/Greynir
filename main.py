@@ -370,6 +370,7 @@ def text_from_request(request):
     else:
         text = request.args.get("t", "")
     # Replace all consecutive whitespace with a single space
+    # GrammCorr 1A - aukabil eru tekin út hér! Hér þyrfti að setja inn e-s konar villulýsingu ef bil eru of mörg.
     return ' '.join(text.split())[0:_MAX_TEXT_LENGTH]
 
 
@@ -386,10 +387,8 @@ def analyze_api(version = 1):
         text = text_from_request(request)
     except:
         return better_jsonify(valid = False, reason = "Invalid request")
-
     with SessionContext(commit = True) as session:
         pgs, stats, register = TreeUtility.tag_text(session, text)
-
     # Return the tokens as a JSON structure to the client
     return better_jsonify(valid = True, result = pgs, stats = stats, register = register)
 

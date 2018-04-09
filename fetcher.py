@@ -136,6 +136,7 @@ class Fetcher:
     def extract_text(soup, result):
         """ Append the human-readable text found in an HTML soup to the result TextList """
         if soup is None:
+            print("SOUP IS NONE")
             return
         for t in soup.children:
             if type(t) == NavigableString:
@@ -169,7 +170,6 @@ class Fetcher:
             elif t.name not in Fetcher._EXCLUDE_TAGS:
                 # Non-block tag
                 Fetcher.extract_text(t, result)
-
 
     @staticmethod
     def to_tokens(soup, enclosing_session = None):

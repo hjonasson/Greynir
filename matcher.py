@@ -154,6 +154,7 @@ _DEFAULT_NT_MAP = {
     "LoAtviksliðir" : "ADVP",
     "Dagsetning" : "ADVP-DATE",
     "Tímasetning" : "ADVP-DATE",
+    "Magn" : "NUM-MEASURE",
     "SagnRuna" : "VP-SEQ",
     "Sagnliður" : "VP",
     "SagnliðurMeðF" : "VP",
@@ -235,6 +236,7 @@ _DEFAULT_ID_MAP = {
     "ADVP-DUR-ABS" : dict(name = "Fast tímabil", overrides = "ADVP-DUR"),
     "ADVP-DUR-REL" : dict(name = "Afstætt tímabil", overrides = "ADVP-DUR"),
     "ADVP-DUR-TIME" : dict(name = "Tímabil", overrides = "ADVP-DUR"),
+    "NUM-MEASURE" : dict(name = "Magn"),
 
     "PP" : dict(name = "Forsetningarliður", overrides = "ADVP"),
     "ADJP" : dict(name = "Lýsingarliður",
