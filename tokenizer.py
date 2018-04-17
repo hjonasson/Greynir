@@ -48,7 +48,7 @@ from scraperdb import SessionContext, Entity
 LEFT_PUNCTUATION = "([„‚«#$€<°"
 RIGHT_PUNCTUATION = ".,:;)]!%?“»”’‛‘…>–"
 CENTER_PUNCTUATION = '"*&+=@©|—'
-NONE_PUNCTUATION = "-/'~‘\\"
+NONE_PUNCTUATION = "—–-/'~\\"
 PUNCTUATION = LEFT_PUNCTUATION + CENTER_PUNCTUATION + RIGHT_PUNCTUATION + NONE_PUNCTUATION
 
 # Punctuation that ends a sentence
@@ -787,7 +787,7 @@ ORDINAL_ERRORS = {
     "1sta" : "fyrsta",
     "1stu" : "fyrstu",
     "3ji" : "þriðji",
-    "3ja" : "þriðja",
+    "3ja" : "þriðja",   # eða þriggja!
     "3ju" : "þriðju",
     "4ði" : "fjórði",
     "4ða" : "fjórða",
@@ -798,7 +798,7 @@ ORDINAL_ERRORS = {
     "2svar" : "tvisvar",
     "3svar" : "þrisvar",
     "2ja" : "tveggja",
-    "3ja" : "þriggja",
+    #"3ja" : "þriggja",
     "4ra" : "fjögurra"
 }
 
@@ -1095,7 +1095,7 @@ def parse_digits(w):
         m = int(p[1])
         sec = int(p[2])
         if (0 <= h < 24) and (0 <= m < 60) and (0 <= sec < 60):
-            return TOK.Time(w, h, m, sec, error=[]), s.end()
+            return TOK.Time(w, h, m, sec), s.end()
     s = re.match(r'\d{1,2}:\d\d', w)
     if s:
         # Looks like a 24-hour clock, H:M
@@ -1104,7 +1104,7 @@ def parse_digits(w):
         h = int(p[0])
         m = int(p[1])
         if (0 <= h < 24) and (0 <= m < 60):
-            return TOK.Time(w, h, m, 0, error=[]), s.end()
+            return TOK.Time(w, h, m, 0), s.end()
     s = re.match(r'\d{1,2}\.\d{1,2}\.\d{2,4}', w) or re.match(r'\d{1,2}/\d{1,2}/\d{2,4}', w)
     if s:
         # Looks like a date
@@ -1123,7 +1123,7 @@ def parse_digits(w):
             # Probably wrong way around
             m, d = d, m
         if is_valid_date(y, m, d):
-            return TOK.Date(w, y, m, d, error=[]), s.end()
+            return TOK.Date(w, y, m, d), s.end()
     s = re.match(r'\d+(\.\d\d\d)*,\d+', w)
     if s:
         # Real number formatted with decimal comma and possibly thousands separator
@@ -1131,14 +1131,14 @@ def parse_digits(w):
         w = s.group()
         n = re.sub(r'\.', '', w) # Eliminate thousands separators
         n = re.sub(r',', '.', n) # Convert decimal comma to point
-        return TOK.Number(w, float(n), error=[]), s.end()
+        return TOK.Number(w, float(n)), s.end()
     s = re.match(r'\d+(\.\d\d\d)+', w)
     if s:
         # Integer with a '.' thousands separator
         # (we need to check this before checking dd.mm dates)
         w = s.group()
         n = re.sub(r'\.', '', w) # Eliminate thousands separators
-        return TOK.Number(w, int(n), error=[]), s.end()
+        return TOK.Number(w, int(n)), s.end()
     s = re.match(r'\d{1,2}/\d{1,2}', w)
     if s and (s.end() >= len(w) or w[s.end()] not in DIGITS):
         # Looks like a date (and not something like 10/2007)
@@ -1150,27 +1150,27 @@ def parse_digits(w):
             # This is probably a fraction, not a date
             # (1/2, 1/3, 1/4, 1/5, 1/6, 2/3, 2/5, 5/6 etc.)
             # Return a number
-            return TOK.Number(w, float(d) / m, error=[]), s.end()
+            return TOK.Number(w, float(d) / m), s.end()
         if m > 12 >= d:
             # Date is probably wrong way around
             m, d = d, m
         if (1 <= d <= 31) and (1 <= m <= 12):
             # Looks like a (roughly) valid date
-            return TOK.Date(w, 0, m, d, error=[]), s.end()
+            return TOK.Date(w, 0, m, d), s.end()
     s = re.match(r'\d\d\d\d$', w) or re.match(r'\d\d\d\d[^\d]', w)
     if s:
         n = int(w[0:4])
         if 1776 <= n <= 2100:
             # Looks like a year
-            return TOK.Year(w[0:4], n, error=[]), 4
+            return TOK.Year(w[0:4], n), 4
     s = re.match(r'\d\d\d-\d\d\d\d', w)
     if s:
         # Looks like a telephone number
-        return TOK.Telno(s.group(), error=[]), s.end()
+        return TOK.Telno(s.group()), s.end()
     s = re.match(r'\d\d\d\d\d\d\d', w)
     if s:
         # Looks like a telephone number
-        return TOK.Telno(s.group()[:3] +"-" + s.group()[3:], error=[]), s.end()
+        return TOK.Telno(s.group()[:3] +"-" + s.group()[3:]), s.end()
 
     s = re.match(r'\d+\.\d+(\.\d+)+', w)
     if s:
@@ -1178,57 +1178,57 @@ def parse_digits(w):
         # (we need to check this before numbers with decimal points)
         w = s.group()
         n = re.sub(r'\.', '', w) # Eliminate dots, 2.5.1 -> 251
-        return TOK.Ordinal(w, int(n), error=[]), s.end()
+        return TOK.Ordinal(w, int(n)), s.end()
     s = re.match(r'\d+(,\d\d\d)*\.\d+', w)
     if s:
         # Real number, possibly with a thousands separator and decimal comma/point
         w = s.group()
         n = re.sub(r',', '', w) # Eliminate thousands separators
         w = re.sub(r'\.', ',', w)   # Change decimal point separator to a comma, GrammCorr 1N
-        return TOK.Number(w, float(n), error=[]), s.end()
+        return TOK.Number(w, float(n)), s.end()
     s = re.match(r'\d+(,\d\d\d)*', w)
     if s:
         # Integer, possibly with a ',' thousands separator
         w = s.group()
         n = re.sub(r',', '', w) # Eliminate thousands separators
-        return TOK.Number(w, int(n), error=[]), s.end()
+        return TOK.Number(w, int(n)), s.end()
     # Strange thing
-    return TOK.Unknown(w, error=[]), len(w)
+    return TOK.Unknown(w), len(w)
 
 
 def parse_tokens(txt):
     """ Generator that parses contiguous text into a stream of tokens """
     rough = txt.split()
-    QM = False # Check if quotation marks on both ends of word    
+    qmark = False # Check if quotation marks on both ends of word    
     for w in rough:
-        QM = False
+        qmark = False
         # Handle each sequence of non-whitespace characters
         if w.isalpha() or w in SI_UNITS:
             # Shortcut for most common case: pure word
-            yield TOK.Word(w, None, error=[])
+            yield TOK.Word(w, None)
             continue
 
         # More complex case of mixed punctuation, letters and numbers
         
         if len(w) > 2 and w[0] in DQUOTES and w[-1] in DQUOTES:
             # Convert to matching Icelandic quotes
-            QM = True
-            yield TOK.Punctuation('„', error=[])
+            qmark = True
+            yield TOK.Punctuation('„')
             if w[1:-1].isalpha():
-                yield TOK.Word(w[1:-1], None, error=[])
-                yield TOK.Punctuation('“', error=[])
-                QM = False
+                yield TOK.Word(w[1:-1], None)
+                yield TOK.Punctuation('“')
+                qmark = False
                 continue
             else:
                 w = w[1:-1] + '“'
         if len(w) > 2 and w[0] in SQUOTES and w[-1] in SQUOTES:
             # Convert to matching Icelandic quotes
-            QM = True
+            qmark = True
             yield TOK.Punctuation('‚', error=[1])
             if w[1:-1].isalpha():
-                yield TOK.Word(w[1:-1], None, error=[])
+                yield TOK.Word(w[1:-1], None)
                 yield TOK.Punctuation('‘', error=[1])
-                QM = False
+                qmark = False
                 continue
             else:
                 w = w[1:-1] + '‘'
@@ -1244,14 +1244,14 @@ def parse_tokens(txt):
             while w and w[0] in PUNCTUATION:
                 ate = True
                 if w.startswith("[...]"):
-                    yield TOK.Punctuation("[…]", error=[])
+                    yield TOK.Punctuation("[…]")
                     w = w[5:]
                 elif w.startswith("[…]"):
-                    yield TOK.Punctuation("[…]", error=[])
+                    yield TOK.Punctuation("[…]")
                     w = w[3:]
                 elif w.startswith("..."):
                     # Treat ellipsis as one piece of punctuation
-                    yield TOK.Punctuation("…", error=[])
+                    yield TOK.Punctuation("…")
                     w = w[3:]
                 elif w == ",,":
                     # Was at the end of a word or by itself, should be ",". GrammCorr 1K
@@ -1283,7 +1283,7 @@ def parse_tokens(txt):
                     w = "‘"
                     continue
                 else:
-                    yield TOK.Punctuation(w[0], error=[])
+                    yield TOK.Punctuation(w[0])
                     w = w[1:]
                 if w == '"':
                     # We're left with a simple double quote: Convert to proper closing quote
@@ -1297,19 +1297,25 @@ def parse_tokens(txt):
                 s = re.match(r"[^@\s]+@[^@\s]+(\.[^@\s\.,/:;\"”]+)+", w)
                 if s:
                     ate = True
-                    yield TOK.Email(s.group(), error=[])
+                    yield TOK.Email(s.group())
                     w = w[s.end():]
             # Numbers or other stuff starting with a digit
             if w and w[0] in DIGITS:
-                if w in ORDINAL_ERRORS: # GrammCorr 1P
-                    w = ORDINAL_ERRORS[w]
-                    continue
-                else:
+                i = 1
+                while i < len(w):
+                    if w[0:i] in ORDINAL_ERRORS:
+                        yield TOK.Word(ORDINAL_ERRORS[w[0:i]], None)
+                        w = w[i:]
+                        ate = True
+                        continue
+                    i +=1
+                if not ate:
                     ate = True
                     t, eaten = parse_digits(w)
                     yield t
                     # Continue where the digits parser left off
                     w = w[eaten:]
+
             if w and w.startswith("http://") or w.startswith("https://") or w.startswith("www"):
                 # Handle URL: cut RIGHT_PUNCTUATION characters off its end,
                 # even though many of them are actually allowed according to
@@ -1318,7 +1324,7 @@ def parse_tokens(txt):
                 while w and w[-1] in RIGHT_PUNCTUATION:
                     endp = w[-1] + endp
                     w = w[:-1]
-                yield TOK.Url(w, error=[])
+                yield TOK.Url(w)
                 ate = True
                 w = endp
 
@@ -1337,35 +1343,38 @@ def parse_tokens(txt):
                 a = w.split('.')
                 if len(a) == 2 and a[0] and a[0][0].islower() and a[1] and a[1][0].isupper():
                     # We have a lowercase word immediately followed by a period and an uppercase word
-                    yield TOK.Word(a[0], None, error=[])
-                    yield TOK.Punctuation('.', error=[])
+                    yield TOK.Word(a[0], None)
+                    yield TOK.Punctuation('.')
                     yield TOK.Word(a[1], None, error=[3])
                     w = None
                 else:
                     while w[i-1] == '.':
                         # Don't eat periods at the end of words
                         i -= 1
-                    yield TOK.Word(w[0:i], None, error=[])
+                    yield TOK.Word(w[0:i], None)
                     w = w[i:]
                     if w and w[0] in COMPOSITE_HYPHENS:
                         # This is a hyphen or en dash directly appended to a word:
                         # might be a continuation ('fjármála- og efnahagsráðuneyti')
                         # Yield a special hyphen as a marker
-                        yield TOK.Punctuation(COMPOSITE_HYPHEN, error=[])
+                        yield TOK.Punctuation(COMPOSITE_HYPHEN)
                         w = w[1:]
-                    if QM:
+                    if qmark:
                         if w[:-1].isalpha():
-                            yield TOK.Word(w[:-1], None, error=[])
-                            if w[-1] in SQUOTES:
-                                yield TOK.Punctuation('‘', error=[])
-                            elif q[-1] in DQUOTES:
-                                yield TOK.Punctuation('“', error=[])
+                            yield TOK.Word(w[:-1], None)
+                            w = w[-1:]
+                            if w in SQUOTES:
+                                yield TOK.Punctuation('‘')
+                                w = None
+                            elif w in DQUOTES:
+                                yield TOK.Punctuation('“')
+                                w = None
                             else:
                                 pass
-                            QM = False
+                            qmark = False
             if not ate:
                 # Ensure that we eat everything, even unknown stuff
-                yield TOK.Unknown(w[0], error=[])
+                yield TOK.Unknown(w[0])
                 w = w[1:]
             # We have eaten something from the front of the raw token.
             # Check whether we're left with a simple double quote,
@@ -1453,7 +1462,7 @@ def parse_particles(token_stream):
                             # to be starting just after it.
                             # Yield the abbreviation without a trailing dot,
                             # and then an 'extra' period token to end the current sentence.
-                            token = TOK.Word("[" + token.txt + "]", None, error=[])
+                            token = TOK.Word("[" + token.txt + "]", None)
                             yield token
                             token = next_token
                         elif abbrev in Abbreviations.NOT_FINISHERS:
@@ -1463,11 +1472,11 @@ def parse_particles(token_stream):
                             token = next_token
                         else:
                             # Substitute the abbreviation and eat the period
-                            token = TOK.Word("[" + token.txt + ".]", None, error=[])
+                            token = TOK.Word("[" + token.txt + ".]", None)
                     else:
                         # 'Regular' abbreviation in the middle of a sentence:
                         # swallow the period and yield the abbreviation as a single token
-                        token = TOK.Word("[" + token.txt + ".]", None, error=[])
+                        token = TOK.Word("[" + token.txt + ".]", None)
 
                     next_token = follow_token
 
@@ -1476,16 +1485,16 @@ def parse_particles(token_stream):
                 if clock or (token.kind == TOK.WORD and token.txt.lower() == CLOCK_WORD):
                     # Match: coalesce and step to next token
                     if next_token.kind == TOK.NUMBER:
-                        token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, next_token.val[0], 0, 0, error=compound_error([token.error, next_token.error]))
+                        token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, next_token.val[0], 0, 0, error=compound_error(token.error, next_token.error))
                     else:
                         token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt,
-                            next_token.val[0], next_token.val[1], next_token.val[2], error=compound_error([token.error, next_token.error]))
+                            next_token.val[0], next_token.val[1], next_token.val[2], error=compound_error(token.error, next_token.error))
                     next_token = next(token_stream)
 
             # Coalesce 'klukkan/kl. átta/hálfátta' into a time
             if next_token.txt in CLOCK_NUMBERS and (clock or (token.kind == TOK.WORD and token.txt.lower() == CLOCK_WORD)):
                 # Match: coalesce and step to next token
-                token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, *CLOCK_NUMBERS[next_token.txt], error=compound_error([token.error, next_token.error]))
+                token = TOK.Time(CLOCK_ABBREV + ". " + next_token.txt, *CLOCK_NUMBERS[next_token.txt], error=compound_error(token.error, next_token.error))
                 next_token = next(token_stream)
             # Words like 'hálftólf' only used in temporal expressions so can stand alone
             if token.txt in CLOCK_HALF:
@@ -1493,17 +1502,17 @@ def parse_particles(token_stream):
 
             # Coalesce 'árið' + [year|number] into year
             if (token.kind == TOK.WORD and (token.txt == "árið" or token.txt == "ársins" or token.txt == "árinu")) and (next_token.kind == TOK.YEAR or next_token.kind == TOK.NUMBER):
-                token = TOK.Year(token.txt + " " + next_token.txt, next_token.txt, error=compound_error([token.error, next_token.error]))
+                token = TOK.Year(token.txt + " " + next_token.txt, next_token.txt, error=compound_error(token.error, next_token.error))
                 next_token = next(token_stream)
 
             # Coalesce [year|number] + ['e.Kr.'|'f.Kr.'] into year
             if token.kind == TOK.YEAR or (token.kind == TOK.NUMBER):
                 val = int(token.val) if token.kind == TOK.YEAR else token.val[0] if token.kind == TOK.NUMBER else 0
                 if next_token.txt == "f.Kr":
-                    token = TOK.Year(token.txt + " " + next_token.txt, -int(val), error=compound_error([token.error, next_token.error]))
+                    token = TOK.Year(token.txt + " " + next_token.txt, -int(val), error=compound_error(token.error, next_token.error))
                     next_token = next(token_stream)
                 elif next_token.txt == "e.Kr":
-                    token = TOK.Year(token.txt + " " + next_token.txt, val, error=compound_error([token.error, next_token.error]))
+                    token = TOK.Year(token.txt + " " + next_token.txt, val, error=compound_error(token.error, next_token.error))
                     next_token = next(token_stream)
 
             # Coalesce percentages into a single token
@@ -1539,7 +1548,7 @@ def parse_particles(token_stream):
                         next_token = follow_token
 
             if token.kind == TOK.NUMBER and next_token.txt in SI_UNITS:
-                token = TOK.Measurement(token.txt + " " + next_token.txt, SI_UNITS[next_token.txt], token.val, error=compound_error([token.error, next_token.error]))
+                token = TOK.Measurement(token.txt + " " + next_token.txt, SI_UNITS[next_token.txt], token.val, error=compound_error(token.error, next_token.error))
                 next_token = next(token_stream)
             # Yield the current token and advance to the lookahead
             yield token
@@ -1627,23 +1636,22 @@ def parse_errors_1(token_stream):
             # Make the lookahead checks we're interested in
 
             # Word reduplication; GrammCorr 1B
-            if token == next_token and token.txt not in ALLOWED_MULTIPLES and token.kind == TOK.WORD:
+            if token.txt and next_token.txt and token.txt.lower() == next_token.txt.lower() and token.txt.lower() not in ALLOWED_MULTIPLES and token.kind == TOK.WORD:
                 # coalesce and step to next token
-                next_token = TOK.Word(next_token.txt, None, error=compound_error([[2], token.error, next_token.error]))
+                next_token = TOK.Word(token.txt, None, error=compound_error(2, token.error, next_token.error))
                 token = next_token
                 continue
             # Splitting wrongly compounded words; GrammCorr 1A
             if token.txt and token.txt.lower() in NOT_COMPOUNDS:
                 for phrase_part in NOT_COMPOUNDS[token.txt.lower()]:
-                    new_token = TOK.Word(phrase_part, None, error=4)
+                    new_token = TOK.Word(phrase_part, None, error=compound_error(4))
                     yield new_token
-                token.error.append(4)
                 token = next_token
                 continue
 
             # Unite wrongly split compounds; GrammCorr 1X
             if (token.txt, next_token.txt) in SPLIT_COMPOUNDS:
-                token = TOK.Word(token.txt + next_token.txt, None, error=compound_error([token.error, [5], next_token.error]))
+                token = TOK.Word(token.txt + next_token.txt, None, error=compound_error(token.error, 5, next_token.error))
                 continue
 
             # Yield the current token and advance to the lookahead
@@ -1664,6 +1672,8 @@ def test(token_stream):
         # Maintain a one-token lookahead
         token = next(token_stream)
         while True:
+            if token.txt:
+                print("T1-error:{}-{}".format(token.txt, token.error))
             yield token
             token = next(token_stream)
     except StopIteration:
@@ -1671,11 +1681,15 @@ def test(token_stream):
         if token:
             yield token
 
-def compound_error(toks):
+def compound_error(*args):
     comp_err = []
-    for alist in toks:
-        if alist:
-            comp_err.extend(alist)
+    for arg in args:
+        if not arg:
+            continue
+        if arg is list:
+            comp_err.extend(arg)
+        else:
+            comp_err.append(arg)
     return comp_err
 
 def annotate(token_stream, auto_uppercase):
@@ -1700,7 +1714,7 @@ def annotate(token_stream, auto_uppercase):
                 # Look up word in BIN database
                 w, m = db.lookup_word(t.txt, at_sentence_start, auto_uppercase)
                 # Yield a word tuple with meanings
-                yield TOK.Word(w, m, error=[])
+                yield TOK.Word(w, m, error=t.error)
             else:
                 # Already have a meaning
                 yield t
@@ -2019,7 +2033,7 @@ def parse_phrases_1(token_stream):
                         token = convert_to_num(token)
                         token = TOK.Number(token.txt + " " + next_token.txt,
                             token.val[0] * multiplier_next,
-                            next_case, next_gender, error=compound_error([token.error, next_token.error]))
+                            next_case, next_gender, error=compound_error(token.error, next_token.error))
                         # Eat the multiplier token
                         next_token = next(token_stream)
                     elif next_token.txt in AMOUNT_ABBREV:
@@ -2029,7 +2043,7 @@ def parse_phrases_1(token_stream):
                         token = convert_to_num(token)
                         token = TOK.Amount(token.txt + " " + next_token.txt, "ISK",
                             token.val[0] * AMOUNT_ABBREV[next_token.txt], # Number
-                            token.val[1], token.val[2], error=compound_error([token.error, next_token.error])) # Cases and gender (and error type)
+                            token.val[1], token.val[2], error=compound_error(token.error, next_token.error)) # Cases and gender (and error type)
                         next_token = next(token_stream)
                     else:
                         # Check for [number] 'percent'
@@ -2037,7 +2051,7 @@ def parse_phrases_1(token_stream):
                         if percentage is not None:
                             token = convert_to_num(token)
                             token = TOK.Percent(token.txt + " " + next_token.txt, token.val[0],
-                                all_cases(next_token), all_genders(next_token), error=compound_error([token.error, next_token.error]))
+                                all_cases(next_token), all_genders(next_token), error=compound_error(token.error, next_token.error))
                             # Eat the percentage token
                             next_token = next(token_stream)
                         else:
@@ -2050,7 +2064,7 @@ def parse_phrases_1(token_stream):
                     month = match_stem_list(next_token, MONTHS)
                     if month is not None:
                         token = TOK.Date(token.txt + " " + next_token.txt, y = 0, m = month,
-                            d = token.val if token.kind == TOK.ORDINAL else token.val[0] if token.kind == TOK.ORDINAL else DAYS_OF_MONTH[token.txt], error=compound_error([token.error, next_token.error]))
+                            d = token.val if token.kind == TOK.ORDINAL else token.val[0] if token.kind == TOK.ORDINAL else DAYS_OF_MONTH[token.txt], error=compound_error(token.error, next_token.error))
                         # Eat the month name token
                         next_token = next(token_stream)
 
@@ -2060,7 +2074,7 @@ def parse_phrases_1(token_stream):
                         # No year yet: add it
                         year = next_token.val if next_token.kind == TOK.YEAR else int(next_token.txt) if 1776 <= int(next_token.txt) <= 2100 else 0
                         token = TOK.Date(token.txt + " " + next_token.txt,
-                            y = year, m = token.val[1], d = token.val[2], error=compound_error([token.error, next_token.error]))
+                            y = year, m = token.val[1], d = token.val[2], error=compound_error(token.error, next_token.error))
                         # Eat the year token
                         next_token = next(token_stream)
 
@@ -2069,7 +2083,7 @@ def parse_phrases_1(token_stream):
                     month = match_stem_list(token, MONTHS)
                     if month is not None:
                         year = next_token.val if next_token.kind == TOK.YEAR else int(next_token.txt) if 1776 <= int(next_token.txt) <= 2100 else 0
-                        token = TOK.Date(token.txt + " " + next_token.txt, y = year, m = month, d = 0, error=compound_error([token.error, next_token.error]))
+                        token = TOK.Date(token.txt + " " + next_token.txt, y = year, m = month, d = 0, error=compound_error(token.error, next_token.error))
                         # Eat the year token
                         next_token = next(token_stream)
 
@@ -2096,7 +2110,7 @@ def parse_phrases_1(token_stream):
                     y, mo, d = token.val
                     h, m, s = next_token.val
                     token = TOK.Timestampabs(token.txt + " " + next_token.txt,
-                        y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
+                        y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error(token.error, next_token.error))
                     # Eat the time token
                     next_token = next(token_stream)
                 # Check for [date] [time] (relative)
@@ -2105,7 +2119,7 @@ def parse_phrases_1(token_stream):
                     y, mo, d = token.val
                     h, m, s = next_token.val
                     token = TOK.Timestamprel(token.txt + " " + next_token.txt,
-                        y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
+                        y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error(token.error, next_token.error))
                     # Eat the time token
                     next_token = next(token_stream)
                 
@@ -2121,7 +2135,7 @@ def parse_phrases_1(token_stream):
                                 token = TOK.Currency(token.txt + " "  + next_token.txt,
                                     ISO_CURRENCIES[(nat, cur)],
                                     all_common_cases(token, next_token),
-                                    all_genders(next_token), error=compound_error([token.error, next_token.error]))
+                                    all_genders(next_token), error=compound_error(token.error, next_token.error))
                                 next_token = next(token_stream)
 
                 # Check for composites:
@@ -2140,7 +2154,7 @@ def parse_phrases_1(token_stream):
                             if token.txt.lower() in ADJECTIVE_PREFIXES:
                                 # hálf-opinberri, marg-ítrekaðri
                                 token = TOK.Word(composite,
-                                    [m for m in og_token.val if m.ordfl == "lo" or m.ordfl == "ao"], error=compound_error([token.error, next_token.error]))
+                                    [m for m in og_token.val if m.ordfl == "lo" or m.ordfl == "ao"], error=compound_error(token.error, next_token.error))
                                 next_token = next(token_stream)
                                 handled = True
                             else:
@@ -2148,7 +2162,7 @@ def parse_phrases_1(token_stream):
                                 m = db.meanings(composite)
                                 if m:
                                     # Found composite in BÍN: return it as a single token
-                                    token = TOK.Word(composite, m, error=compound_error([token.error, next_token.error]))
+                                    token = TOK.Word(composite, m, error=compound_error(token.error, next_token.error))
                                     next_token = next(token_stream)
                                     handled = True
                         if not handled:
@@ -2162,7 +2176,7 @@ def parse_phrases_1(token_stream):
                         if final_token.kind != TOK.WORD:
                             # Incorrect: unwind
                             yield token
-                            yield TOK.Punctuation(HYPHEN, error=[]) # Normal hyphen
+                            yield TOK.Punctuation(HYPHEN) # Normal hyphen
                             token = og_token
                             next_token = final_token
                         else:
@@ -2173,7 +2187,7 @@ def parse_phrases_1(token_stream):
                             # part of the composition, so it can be an unknown word.
                             txt = token.txt + "- " + og_token.txt + \
                                 " " + final_token.txt
-                            token = TOK.Word(txt, final_token.val, error=compound_error([token.error, next_token.error, final_token.error]))
+                            token = TOK.Word(txt, final_token.val, error=compound_error(token.error, next_token.error, final_token.error))
                             next_token = next(token_stream)
 
                 # Yield the current token and advance to the lookahead
@@ -2245,7 +2259,7 @@ def parse_phrases_2(token_stream):
                     # Create an amount
                     # Use the case and gender information from the number, if any
                     token = TOK.Amount(token.txt + " " + next_token.txt,
-                        cur, token.val[0], cases, genders, error=compound_error([token.error, next_token.error]))
+                        cur, token.val[0], cases, genders, error=compound_error(token.error, next_token.error))
                     # Eat the currency token
                     next_token = next(token_stream)
 
@@ -2255,7 +2269,7 @@ def parse_phrases_2(token_stream):
                 h, m, s = token.val
                 y, mo, d = next_token.val
                 token = TOK.Timestampabs(token.txt + " " + next_token.txt,
-                    y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
+                    y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error(token.error, next_token.error))
                 # Eat the time token
                 next_token = next(token_stream)
 
@@ -2265,7 +2279,7 @@ def parse_phrases_2(token_stream):
                 h, m, s = token.val
                 y, mo, d = next_token.val
                 token = TOK.Timestamprel(token.txt + " " + next_token.txt,
-                    y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error([token.error, next_token.error]))
+                    y = y, mo = mo, d = d, h = h, m = m, s = s, error=compound_error(token.error, next_token.error))
                 # Eat the time token
                 next_token = next(token_stream)
 
@@ -2613,7 +2627,7 @@ def parse_static_phrases(token_stream, auto_uppercase):
                         # Yield the replacement token
                         yield TOK.Word(token.txt,
                             [ BIN_Meaning._make(r)
-                                for r in StaticPhrases.get_meaning(ix) ], error=[])
+                                for r in StaticPhrases.get_meaning(ix) ])
                         newstate = defaultdict(list)
                         token = None
                         break
@@ -2691,9 +2705,9 @@ def disambiguate_phrases(token_stream):
                                 # Handle prepositions specially, since we may have additional
                                 # preps defined in Main.conf that don't have fs meanings in BÍN
                                 w = t.txt.lower()
-                                yield TOK.Word(t.txt, [ BIN_Meaning(w, 0, "fs", "alm", w, "-") ], error=[])
+                                yield TOK.Word(t.txt, [ BIN_Meaning(w, 0, "fs", "alm", w, "-") ])
                             else:
-                                yield TOK.Word(t.txt, [m for m in t.val if m.ordfl == cat], error=[])
+                                yield TOK.Word(t.txt, [m for m in t.val if m.ordfl == cat])
 
                         # Discard the state and start afresh
                         if newstate:
@@ -2952,7 +2966,7 @@ def raw_tokenize(text):
     token_stream = parse_particles(token_stream)
     token_stream = parse_sentences(token_stream)
     token_stream = parse_errors_1(token_stream)
-    token_stream = test(token_stream)
+    #token_stream = test(token_stream)
     return token_stream
 
 
@@ -2982,7 +2996,7 @@ def tokenize(text, auto_uppercase = False, enclosing_session = None):
      # Eliminate very uncommon meanings
     token_stream = disambiguate_phrases(token_stream)
 
-    token_stream = test_2(token_stream)
+    #token_stream = test_2(token_stream)
 
 
     return token_stream

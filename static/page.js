@@ -64,8 +64,8 @@ var TP_SPACE = [
     [ true,   true,   false,  false,  true]
 ];
 
-var LEFT_PUNCTUATION = "([„‚«#$€<";
-var RIGHT_PUNCTUATION = ".,:;)]!%?“»”’‘…°>";
+var LEFT_PUNCTUATION = "([„‚«#$€<°";
+var RIGHT_PUNCTUATION = ".,:;)]!%?“»”’‛‘…>–";
 var NONE_PUNCTUATION = "—–-/'~\\";
 // CENTER_PUNCTUATION = '"*&+=@©|'
 
