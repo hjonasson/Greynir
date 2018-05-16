@@ -158,21 +158,12 @@ class DawgDictionary:
         self.navigate(nav)
         return nav.result()
 
-    def slice_compound_word(self, word):
+    def find_combinations(self, word):
         """ Attempt to slice an unknown word into parts, where each part is
             a valid word form in itself, and the parts form a valid compound word. """
         nav = CompoundNavigator(self, word)
         self.navigate(nav)
-        w = nav.result()
-        # We get back a list of lists, i.e. all possible compound word combinations
-        # where each combination is a list of word parts. We return
-        # the combination with the longest last part and the shortest overall
-        # number of parts.
-        w.sort(key = lambda x : (len(x[-1]), -len(x)), reverse = True)
-        # Cut out interpretations that end with closed word categories,
-        # i.e. conjunctions and prepositions
-        # gr, st, abfn, nhm, fs?
-        return w[0] if w else None
+        return nav.result()
 
     def navigate(self, nav):
         """ A generic function to navigate through the DAWG under
@@ -206,7 +197,9 @@ class Wordbase:
 
     """ Container for a singleton instance of the word database """
 
-    _dawg = None
+    _dawg1 = None   # All word forms
+    _dawg2 = None   # Word forms allowed as former parts of compounds
+    _dawg3 = None   # Word forms allowed as last part of compounds
 
     _lock = threading.Lock()
 
@@ -217,40 +210,76 @@ class Wordbase:
         # When running under PyPy, we prefer to parse the text representation
         # of the DAWG since reading .pickle files is quite slow
         is_pypy = platform.python_implementation() == "PyPy"
-        pname = os.path.abspath(os.path.join("resources",
-            resource + (".text.dawg" if is_pypy else ".dawg.pickle")))
+        pname1 = os.path.abspath(os.path.join("resources",
+            resource + ("_all.text.dawg" if is_pypy else ".dawg.pickle")))
+        pname2 = os.path.abspath(os.path.join("resources",
+            resource + ("_former.text.dawg" if is_pypy else ".dawg.pickle")))
+        pname3 = os.path.abspath(os.path.join("resources",
+            resource + ("_last.text.dawg" if is_pypy else ".dawg.pickle")))
 
-        dawg = DawgDictionary()
+        dawg1 = DawgDictionary()
+        dawg2 = DawgDictionary()
+        dawg3 = DawgDictionary()
 
         t0 = time.time()
         if is_pypy:
             # Running under PyPy: Parse from text file
-            dawg.load(pname)
+            dawg1.load(pname1)
+            dawg2.load(pname2)
+            dawg3.load(pname3)
         else:
             # Running under CPython or other Python platform: Load from pickle
-            dawg.load_pickle(pname)
+            dawg1.load_pickle(pname1)
+            dawg2.load_pickle(pname2)
+            dawg3.load_pickle(pname3)
         t1 = time.time()
-        logging.info(u"Loaded {0} graph nodes in {1:.2f} seconds".format(dawg.num_nodes(), t1 - t0))
+        logging.info(u"Loaded {0} graph nodes in {1:.2f} seconds".format(dawg1.num_nodes(), t1 - t0))
 
         # Do not assign Wordbase._dawg until fully loaded, to prevent race conditions
-        return dawg
+        return dawg1, dawg2, dawg3
+
+    def slice_compound_word(word):
+        """ Get best combination of word parts if such a combination exists """
+        # We get back a list of lists, i.e. all possible compound word combinations
+        # where each combination is a list of word parts. 
+
+        Wordbase._dawg1, Wordbase._dawg2, Wordbase._dawg3 = Wordbase.dawg()
+        
+        # Only keep valid combinations
+        possibles = [ x for x in Wordbase._dawg1.find_combinations(word) if x and Wordbase.valid_combo(x) ]
+        
+        # We return the combination with the longest last part and the shortest overall
+        # number of parts.
+        possibles.sort(key = lambda x : (len(x[-1]), -len(x)), reverse = True)
+        return possibles[0] if possibles else None
+
+    def valid_combo(combo):
+        # Last part
+        if combo[-1] not in Wordbase._dawg3:
+            return False
+        # Former parts
+        for each in combo[:-1]:
+            if each not in Wordbase._dawg2:
+                return False
+        return True
+
 
     @staticmethod
     def _load():
         """ Load a main dictionary """
         with Wordbase._lock:
-            if Wordbase._dawg is not None:
+            if Wordbase._dawg1 is not None:
                 # Already loaded: nothing to do
-                return Wordbase._dawg
+                return Wordbase._dawg1, Wordbase._dawg2, Wordbase._dawg3
             return Wordbase._load_resource("ordalisti") # Main dictionary
 
     @staticmethod
     def dawg():
         """ Return the main dictionary DAWG object, loading it if required """
-        if Wordbase._dawg is None:
-            Wordbase._dawg = Wordbase._load()
-        assert Wordbase._dawg is not None
-        return Wordbase._dawg
+        if Wordbase._dawg1 is None:
+            Wordbase._dawg1, Wordbase._dawg2, Wordbase._dawg3 = Wordbase._load()
+        assert Wordbase._dawg1 is not None
+        return Wordbase._dawg1, Wordbase._dawg2, Wordbase._dawg3
 
 
 class Navigation:
@@ -516,7 +545,7 @@ class CompoundNavigator:
     """
 
     # Stuff not in BÍN that may occur within compound words
-    _JOINERS = ["", "s"] # "u", "sam"
+    _JOINERS = [""] # "u", "sam", "s"
 
     def __init__(self, dawg, word):
         self._dawg = dawg
@@ -553,17 +582,11 @@ class CompoundNavigator:
                 self._parts = [ [ matched ] ]
             else:
                 # So far so good: try to match the rest
-                for j in CompoundNavigator._JOINERS:
-                    lenj = len(j)
-                    if (lenj == 0) or \
-                        (self._index + lenj < self._len and self._word[self._index:self._index + lenj] == j):
-                        nav = CompoundNavigator(self._dawg, self._word[self._index + lenj:])
-                        self._dawg.navigate(nav)
-                        result = nav.result()
-                        if result:
-                            self._parts.extend( [ [ matched + j ] + tail for tail in result ] )
-                            break
-                        # Else, try next joiner
+                nav = CompoundNavigator(self._dawg, self._word[self._index:])
+                self._dawg.navigate(nav)
+                result = nav.result()
+                if result:
+                    self._parts.extend( [ [ matched ] + tail for tail in result ] )
 
     # noinspection PyMethodMayBeStatic
     def pop_edge(self):

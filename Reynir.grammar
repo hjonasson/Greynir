@@ -319,6 +319,7 @@ Skilyrðissetning →
 
 $score(+4) Samanburðarsetning
 $score(-10) Skilyrðissetning # Skilyrðistenging er með plús á móti
+$score(+20) Tilgangssetning # Vegur upp á móti Skýringarsetningu
 
 # Fallsetningar - skýringarsetningar og spurnaraukasetningar
 

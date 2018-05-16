@@ -99,6 +99,7 @@ import os
 import sys
 import codecs
 
+
 # Hack to make this Python program executable from the utils subdirectory
 basepath, _ = os.path.split(os.path.realpath(__file__))
 if basepath.endswith("/utils") or basepath.endswith("\\utils"):

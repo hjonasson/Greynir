@@ -117,6 +117,9 @@ class BIN_Db:
     # Noun categories
     _NOUNS = frozenset(("kk", "kvk", "hk"))
 
+    _OPEN_CATS = frozenset(("so", "kk", "hk", "kvk", "lo")) # Open word categories
+
+
     # Singleton LFU caches for word meaning and form lookups
     _meanings_cache = LFU_Cache(maxsize = CACHE_SIZE_MEANINGS)
     _forms_cache = LFU_Cache()
@@ -388,6 +391,11 @@ class BIN_Db:
         ] if prefix else mlist
 
     @staticmethod
+    def open_cats(mlist):
+        return [ mm for mm in mlist if mm.ordfl in BIN_Db._OPEN_CATS ]
+
+
+    @staticmethod
     def _lookup(w, at_sentence_start, auto_uppercase, lookup):
         """ Lookup a simple or compound word in the database and return its meaning(s) """
 
@@ -485,10 +493,10 @@ class BIN_Db:
 
         if not m:
             # Still nothing: check compound words
-            cw = Wordbase.dawg().slice_compound_word(w)
+            cw = Wordbase.slice_compound_word(w)
             if not cw and lower_w != w:
                 # If not able to slice in original case, try lower case
-                cw = Wordbase.dawg().slice_compound_word(lower_w)
+                cw = Wordbase.slice_compound_word(lower_w)
             if cw:
                 # This looks like a compound word:
                 # use the meaning of its last part
@@ -500,6 +508,8 @@ class BIN_Db:
                     # (it wouldn't be correct to capitalize verbs, adjectives, etc.)
                     m = [ mm for mm in m if mm.ordfl in BIN_Db._NOUNS ]
                 m = BIN_Db.prefix_meanings(m, prefix)
+                # TODO hér mætti henda merkingum fyrir lokaða orðflokka... 
+                m = BIN_Db.open_cats(m) # Only allows meanings from open word categories (nouns, verbs, adjectives, adverbs)
 
         if not m and lower_w.startswith('ó'):
             # Check whether an adjective without the 'ó' prefix is found in BÍN
