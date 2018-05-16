@@ -48,6 +48,7 @@ var TOK_DATEABS = 18;
 var TOK_DATEREL = 19;
 var TOK_TIMESTAMPABS = 20;
 var TOK_TIMESTAMPREL = 21;
+var TOK_MEASUREMENT = 22;
 
 var tokClass = [];
 
@@ -69,6 +70,7 @@ tokClass[TOK_DATEABS] = "dateabs";
 tokClass[TOK_DATEREL] = "daterel";
 tokClass[TOK_TIMESTAMPABS] = "timestampabs";
 tokClass[TOK_TIMESTAMPREL] = "timestamprel";
+tokClass[TOK_MEASUREMENT] = "measurement";
 
 var tokId = [];
 
@@ -93,6 +95,7 @@ tokId["DATEABS"] = TOK_DATEABS;
 tokId["DATEREL"] = TOK_DATEREL;
 tokId["TIMESTAMPABS"] = TOK_TIMESTAMPABS;
 tokId["TIMESTAMPREL"] = TOK_TIMESTAMPREL;
+tokId["MEASUREMENT"] = TOK_MEASUREMENT;
 
 var wordClass = {
    "no" : "óþekkt nafnorð",
@@ -495,6 +498,28 @@ function tokenInfo(t, nameDict) {
       r.lemma = t.x;
       r.details = "afstæð tímasetning";
    }
+   else
+   if (t.k == TOK_MEASUREMENT) {
+      r.lemma = t.x;
+      r.details = "magn";
+      if (t.v[0] == "C") {
+        r.details = "hitastig";
+      }
+      if (t.v[0] == "W") {
+        r.details = "þyngd";
+      }
+      if (t.v[0] == "L") {
+        r.details = "lengd";
+      }
+      if (t.v[0] == "V") {
+        r.details = "rúmmál";
+      }
+      if (t.v[0] == "A") {
+        r.details = "flatarmál";
+      }
+
+   }
+
    return r;
 }
 

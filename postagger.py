@@ -193,7 +193,8 @@ class IFD_Tagset:
         "TIMESTAMP" : "to",
         "TIMESTAMPABS" : "to",
         "TIMESTAMPREL" : "to",
-        "PERCENT" : "tp"
+        "PERCENT" : "tp",
+        "MEASUREMENT" : "to"
     }
 
     CAT_TO_SCHEME = {

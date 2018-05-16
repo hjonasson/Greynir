@@ -587,6 +587,10 @@ class BIN_Token(Token):
                     return False
         return True
 
+    def matches_MEASUREMENT(self, terminal):
+        """ A measurement token matches a measurement terminal """
+        return terminal.startswith("mæl")
+
     def matches_AMOUNT(self, terminal):
         """ An amount token matches a noun terminal """
         if not terminal.startswith("no"):
@@ -931,6 +935,7 @@ class BIN_Token(Token):
         TOK.CURRENCY: matches_CURRENCY,
         TOK.AMOUNT: matches_AMOUNT,
         TOK.NUMBER: matches_NUMBER,
+        TOK.MEASUREMENT: matches_MEASUREMENT,
         TOK.PERCENT: matches_PERCENT,
         TOK.ORDINAL: matches_ORDINAL,
         TOK.YEAR: matches_YEAR,

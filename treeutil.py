@@ -83,6 +83,7 @@ _TEST_NT_MAP = { # Til að prófa í parse_text_to_bracket_form()
     "LoAtviksliðir" : "ADVP",
     "LoLiður" : "ADJP",
     "Töluorð" : "NUM",
+    "Magn" : "NUM-MEASURE",
 
     "OgEða" : "C",
     "OgEðaEn" : "C",
@@ -109,27 +110,37 @@ _TEST_TERMINAL_MAP = {
     # for particular terminals, put the first part of the terminal
     # name here
     "fs" : "P",
+
     "no" : "N",
     "hk" : "N",
     "kk" : "N",
     "kvk" : "N",
     "fyrirtæki" : "N",
+
     "fn" : "PRON",
     "pfn" : "PRON",
     "abfn" : "PRON",
+
     "so" : "V",
+
     "ao" : "ADV",
     "eo" : "ADV",
     "spao" : "ADV",
     "tao" : "ADV",
+
     "lo" : "ADJ",
     "raðnr" : "ADJ", # Raðtölur
+    
+    "to" : "NUM",
     "töl" : "NUM",
     "tala" : "NUM",
     "ártal" : "NUM",
+
     "st" : "C",
     "stt" : "C", 
+
     "nhm" : "INF", # Nafnháttarmerki
+
     "gr" : "DET",
 }
 
@@ -176,6 +187,7 @@ _TEST_ID_MAP = { # Til að prófa í parse_text_to_bracket_form()
     "P" : dict(name = "Forsetning"),
     "INF" : dict(name = "Nafnháttarmerki"),
     "NUM" : dict(name = "Töluorð"),
+    "NUM-MEASURE" : dict(name = "Magn"),
     "C" : dict(name = "Samtenging"),
     "ADJ" : dict(name = "Lýsingarorð", overrides = "V"),
     "DET" : dict(name = "Greinir"),

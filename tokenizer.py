@@ -45,10 +45,10 @@ from scraperdb import SessionContext, Entity
 
 # Recognized punctuation
 
-LEFT_PUNCTUATION = "([„«#$€<"
-RIGHT_PUNCTUATION = ".,:;)]!%?“»”’…°>–"
+LEFT_PUNCTUATION = "([„‚«#$€<°"
+RIGHT_PUNCTUATION = ".,:;)]!%?“»”’‛‘…>–"
 CENTER_PUNCTUATION = '"*&+=@©|—'
-NONE_PUNCTUATION = "-/'~‘\\"
+NONE_PUNCTUATION = "—–-/'~\\"
 PUNCTUATION = LEFT_PUNCTUATION + CENTER_PUNCTUATION + RIGHT_PUNCTUATION + NONE_PUNCTUATION
 
 # Punctuation that ends a sentence
@@ -66,6 +66,10 @@ HYPHEN = '-' # Normal hyphen
 # Hyphens that may indicate composite words ('fjármála- og efnahagsráðuneyti')
 COMPOSITE_HYPHENS = "–-"
 COMPOSITE_HYPHEN = '–' # en dash
+
+# Quotes that can be found
+SQUOTES = "'‚‛‘"
+DQUOTES = '"“„”'
 
 CLOCK_WORD = "klukkan"
 CLOCK_ABBREV = "kl"
@@ -216,6 +220,32 @@ CLOCK_HALF = frozenset([
     "hálftólf"
 ])
 
+# A = Area
+# T = Time
+# L = Length
+# C = Temperature
+# W = Weight
+# V = Volume
+SI_UNITS = {
+    "m²" : "A",
+    "fm" : "A",
+    "cm²" : "A",
+    "cm³" : "V",
+    "ltr" : "V",
+    "dl" : "V",
+    "cl" : "V",
+    "m³" : "V",
+    "°C" : "C",
+    "gr" : "W",
+    "kg" : "W",
+    "mg" : "W",
+    "μg" : "W",
+    "km" : "L",
+    "mm" : "L",
+    "cm" : "L",
+    "sm" : "L",
+}
+
 # Handling of Roman numerals
 
 RE_ROMAN_NUMERAL = re.compile(r"^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
@@ -297,6 +327,7 @@ class TOK:
     DATEREL = 19
     TIMESTAMPABS = 20
     TIMESTAMPREL = 21
+    MEASUREMENT = 22
 
     P_BEGIN = 10001 # Paragraph begin
     P_END = 10002 # Paragraph end
@@ -323,6 +354,7 @@ class TOK:
         NUMBER: "NUMBER",
         CURRENCY: "CURRENCY",
         AMOUNT: "AMOUNT",
+        MEASUREMENT: "MEASUREMENT",
         PERSON: "PERSON",
         WORD: "WORD",
         TELNO: "TELNO",
@@ -546,10 +578,14 @@ def parse_digits(w):
         if 1776 <= n <= 2100:
             # Looks like a year
             return TOK.Year(w[0:4], n), 4
-    s = re.match(r'\d\d\d-\d\d\d\d', w) or re.match(r'\d\d\d\d\d\d\d', w)
+    s = re.match(r'\d\d\d-\d\d\d\d', w)
     if s:
         # Looks like a telephone number
         return TOK.Telno(s.group()), s.end()
+    s = re.match(r'\d\d\d\d\d\d\d', w)
+    if s:
+        # Looks like a telephone number
+        return TOK.Telno(s.group()[:3] +"-" + s.group()[3:]), s.end()
     s = re.match(r'\d+\.\d+(\.\d+)+', w)
     if s:
         # Some kind of ordinal chapter number: 2.5.1 etc.
@@ -568,6 +604,7 @@ def parse_digits(w):
         # Integer, possibly with a ',' thousands separator
         w = s.group()
         n = re.sub(r',', '', w) # Eliminate thousands separators
+        w = re.sub(r'\.', ',', w)   # Change decimal point separator to a comma
         return TOK.Number(w, int(n)), s.end()
     # Strange thing
     return TOK.Unknown(w), len(w)
@@ -576,16 +613,40 @@ def parse_digits(w):
 def parse_tokens(txt):
     """ Generator that parses contiguous text into a stream of tokens """
     rough = txt.split()
-
+    qmark = False # Check if quotation marks on both ends of word    
     for w in rough:
+        qmark = False
         # Handle each sequence of non-whitespace characters
 
-        if w.isalpha():
+        if w.isalpha() or w in SI_UNITS:
             # Shortcut for most common case: pure word
             yield TOK.Word(w, None)
             continue
 
         # More complex case of mixed punctuation, letters and numbers
+        if len(w) > 2 and w[0] in DQUOTES and w[-1] in DQUOTES:
+            # Convert to matching Icelandic quotes
+            qmark = True
+            yield TOK.Punctuation('„')
+            if w[1:-1].isalpha():
+                yield TOK.Word(w[1:-1], None)
+                yield TOK.Punctuation('“')
+                qmark = False
+                continue
+            else:
+                w = w[1:-1] + '“'
+        if len(w) > 2 and w[0] in SQUOTES and w[-1] in SQUOTES:
+            # Convert to matching Icelandic quotes
+            qmark = True
+            yield TOK.Punctuation('‚')
+            if w[1:-1].isalpha():
+                yield TOK.Word(w[1:-1], None)
+                yield TOK.Punctuation('‘')
+                qmark = False
+                continue
+            else:
+                w = w[1:-1] + '‘'
+
         if len(w) > 1 and w[0] == '"':
             # Convert simple quotes to proper opening quotes
             yield TOK.Punctuation('„')
@@ -606,6 +667,10 @@ def parse_tokens(txt):
                     # Treat ellipsis as one piece of punctuation
                     yield TOK.Punctuation("…")
                     w = w[3:]
+                elif w == ",,":
+                    # Was at the end of a word or by itself, should be ",". GrammCorr 1K
+                    yield TOK.Punctuation(',')  
+                    w = w[2:]
                 elif w.startswith(",,"):
                     # Probably an idiot trying to type opening double quotes with commas
                     yield TOK.Punctuation('„')
@@ -624,12 +689,20 @@ def parse_tokens(txt):
                     # Any sequence of hyphens is treated as a single hyphen
                     while w and w[0] in HYPHENS:
                         w = w[1:]
+                elif w == '”':
+                    w = '“'
+                    continue
+                elif w == "'":
+                    # Left with a single quote, convert to proper closing quote
+                    w = "‘"
+                    continue
                 else:
                     yield TOK.Punctuation(w[0])
                     w = w[1:]
                 if w == '"':
                     # We're left with a simple double quote: Convert to proper closing quote
-                    w = '”'
+                    w = '“'
+                    continue
             if w and '@' in w:
                 # Check for valid e-mail
                 # Note: we don't allow double quotes (simple or closing ones) in e-mails here
@@ -641,12 +714,22 @@ def parse_tokens(txt):
                     w = w[s.end():]
             # Numbers or other stuff starting with a digit
             if w and w[0] in DIGITS:
-                ate = True
-                t, eaten = parse_digits(w)
-                yield t
-                # Continue where the digits parser left off
-                w = w[eaten:]
-            if w and w.startswith("http://") or w.startswith("https://"):
+                i = 1
+                while i < len(w):
+                    if w[0:i] in ORDINAL_ERRORS:
+                        yield TOK.Word(ORDINAL_ERRORS[w[0:i]], None)
+                        w = w[i:]
+                        ate = True
+                        continue
+                    i +=1
+                if not ate:
+                    ate = True
+                    t, eaten = parse_digits(w)
+                    yield t
+                    # Continue where the digits parser left off
+                    w = w[eaten:]
+
+            if w and w.startswith("http://") or w.startswith("https://") or w.startswith("www"):
                 # Handle URL: cut RIGHT_PUNCTUATION characters off its end,
                 # even though many of them are actually allowed according to
                 # the IETF RFC
@@ -688,6 +771,19 @@ def parse_tokens(txt):
                         # Yield a special hyphen as a marker
                         yield TOK.Punctuation(COMPOSITE_HYPHEN)
                         w = w[1:]
+                    if qmark:
+                        if w[:-1].isalpha():
+                            yield TOK.Word(w[:-1], None)
+                            w = w[-1:]
+                            if w in SQUOTES:
+                                yield TOK.Punctuation('‘')
+                                w = None
+                            elif w in DQUOTES:
+                                yield TOK.Punctuation('“')
+                                w = None
+                            else:
+                                pass
+                            qmark = False
             if not ate:
                 # Ensure that we eat everything, even unknown stuff
                 yield TOK.Unknown(w[0])
@@ -696,8 +792,7 @@ def parse_tokens(txt):
             # Check whether we're left with a simple double quote,
             # in which case we convert it to a proper closing double quote
             if w and w[0] == '"':
-                w = '”' + w[1:]
-
+                w = '“' + w[1:]
 
 def parse_particles(token_stream):
     """ Parse a stream of tokens looking for 'particles'
@@ -863,7 +958,9 @@ def parse_particles(token_stream):
                         token = TOK.Ordinal(token.txt + '.', num)
                         # Continue with the following word
                         next_token = follow_token
-
+            if token.kind == TOK.NUMBER and next_token.txt in SI_UNITS:
+                token = TOK.Measurement(token.txt + " " + next_token.txt, SI_UNITS[next_token.txt], token.val)
+                next_token = next(token_stream)
 
             # Yield the current token and advance to the lookahead
             yield token
