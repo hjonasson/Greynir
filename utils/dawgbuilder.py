@@ -648,7 +648,7 @@ def run_bin(with_pickle = False):
     db = DawgBuilder()
     t0 = time.time()
     db.build(
-        ["ordalisti.sorted.txt"], # Input files to be merged
+        ["ordalisti.sorted.txt", "last.txt"], # Input files to be merged
         "ordalisti", # Output file - full name will be ordalisti.text.dawg
         os.path.join(basepath, "resources"), # Subfolder of input and output files
         nofilter # Word filter function to apply

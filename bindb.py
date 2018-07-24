@@ -508,7 +508,6 @@ class BIN_Db:
                     # (it wouldn't be correct to capitalize verbs, adjectives, etc.)
                     m = [ mm for mm in m if mm.ordfl in BIN_Db._NOUNS ]
                 m = BIN_Db.prefix_meanings(m, prefix)
-                # TODO hér mætti henda merkingum fyrir lokaða orðflokka... 
                 m = BIN_Db.open_cats(m) # Only allows meanings from open word categories (nouns, verbs, adjectives, adverbs)
 
         if not m and lower_w.startswith('ó'):

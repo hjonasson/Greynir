@@ -127,7 +127,7 @@ Forskeyti →
     | 'mynd:kvk'_nf_et tala_nf_kvk AfTala? ':'? # Mynd 2 af 10
     | 'dæmi:hk'_et_nf tala_nf_hk? ':'
     | 'sjá:so'_gm_nh "einnig:ao"? ':'
-    | "semsagt:ao" ':'
+    | "semsagt:ao" ':'    # ERROR
     | "sem:st" 'segja:so'_lhþt_sb_hk_nf_et ':'
     | 'aðferð:kvk'_nf_et ':'
     | 'með_öðrum_orðum:ao' ':' | 'með:fs'_þgf 'annar:lo'_hk_þgf_ft 'orð:hk'_þgf_ft ':'
@@ -206,9 +206,9 @@ Samtenging →
     # Flóknari samtenging úr mörgum orðum
     "og:st" | "eða:st" | "ellegar:st" | "heldur:st" 
     | "enda:st" | "en:st" | "hvorki:st"
-    | 'það:pfn'_hk_nf_et "er:so" | 'það_er:ao'
-    | "þar:ao" 'á:ao' "meðal:ao" | 'þar_á_meðal:ao'
-    | 'auk_þess:ao' "sem:st" "að:st"?
+    | 'það:pfn'_hk_nf_et "er:so" | 'það_er:ao'    # ERROR -- er þetta inni sem ao liður?
+    | "þar:ao" 'á:ao' "meðal:ao" | 'þar_á_meðal:ao'    # ERROR -- er þetta inni sem ao liður?
+    | 'auk_þess:ao' "sem:st" "að:st"?    # ERROR - að
     | 'það_er_að_segja:ao' Tengimerki "að:st"?
 
 $score(+2) Samtenging
@@ -246,6 +246,7 @@ $tag(begin_prep_scope) HreinYfirsetning # Nýtt undirtré fyrir tengingu sagnar 
 
 # Spurnaraðalsetningar
 
+    # ERROR -- bæta við dæmum
 Spurnarsetning →
     SpurnarNafnliður/tala/fall/kyn FsMeðFallstjórn? BeygingarliðurSögnFremst? "?"
     | SpurnarForsetningarliður FsMeðFallstjórn? BeygingarliðurSögnFremst? "?"
@@ -339,7 +340,7 @@ SkýringarBotn →
 # Spurnaraukasetningar
 Spurnaraukasetning →
     SpurnarNafnliður/tala/fall/kyn FsMeðFallstjórn? BeygingarliðurÁnUmröðunar?
-    | "hvort:st" "að:st"? BeygingarliðurÁnUmröðunar?
+    | "hvort:st" "að:st"? BeygingarliðurÁnUmröðunar?    # ERROR
     | SpurnarForsetningarliður BeygingarliðurÁnUmröðunar?
     | SpurnarAtviksorð FsMeðFallstjórn? BeygingarliðurÁnUmröðunar?
     | SpurnarFrumlag/pers/tala/kyn FsMeðFallstjórn? BlTagl/tala/pers/kyn?
@@ -362,7 +363,7 @@ SpurnarForsetningarliður →
 SpurnarAtviksorð →
     spao | "hvernig:ao" | 'af:fs'_þgf 'hver:fn'_þgf_et_hk | "hví:ao" | "afhverju:ao"
     | 'til:fs'_ef 'hver:fn'_ef_et_hk | 'hver:fn'_ef_et_hk 'vegna:fs'_ef
-    | "hvort:st" "að:st"?
+    | "hvort:st" "að:st"?    # ERROR
 
 HversuHve →
     "hversu:ao" | "hve:ao"
@@ -408,20 +409,20 @@ BeygingarliðurMeðUmröðun/tala/pers/kyn →
 
 # Mögulegar tengingar í aukasetningum eftir gerð aukasetningar
 Tíðartenging →
-    'áðan:ao'_mst "en:st" "að:st"?  # áður en [að]
+    'áðan:ao'_mst "en:st" "að:st"?  # áður en [að]    # ERROR
     | 'allt:fn'_nf_hk_et? 'frá:fs'_þgf 'það:pfn'_hk_þgf_et "að:st"
     | 'allt:fn'_nf_hk_et? 'frá:fs'_þgf 'það:pfn'_hk_þgf_et "er:st"?
-    | 'snemma:ao'_mst "en:st" "að:st"?  #fyrr en [að]
-    | 'ótt:ao'_mst "en:st" "að:st"? # óðar en [að]
+    | 'snemma:ao'_mst "en:st" "að:st"?  #fyrr en [að]    # ERROR
+    | 'ótt:ao'_mst "en:st" "að:st"? # óðar en [að]    # ERROR
     | "þá:ao" "er:st"
     | "eftir:ao" "að:st"
     | "um_leið:ao" "og:st"  # um leið og
     | "síðan:st"
     | "þegar:st"
     | "uns:st"
-    | 'á_meðan:ao' "að:st"? # á meðan [að]
+    | 'á_meðan:ao' "að:st"? # á meðan [að]    # ERROR
     | "meðan:st"
-    | "þangað:ao" "til:st" "að:st"?
+    | "þangað:ao" "til:st" "að:st"?    # ERROR
     | "á_sama_tíma:ao" "og:st"
     | 'allar_götur_síðan:ao'
     | "er:st" # Líka tilvísunartenging
@@ -431,9 +432,9 @@ Tilgangstenging →
     | "svo:ao" "að:st"?                 # Líka afleiðingartenging
 
 Viðurkenningartenging →
-    "enda:st" "þótt:st" "að:st"?
-    | "jafnvel:ao"? "þótt:st" "að:st"?
-    | "jafnvel:ao"? "þó:st" "að:st"?
+    "enda:st" "þótt:st" "að:st"?    # ERROR
+    | "jafnvel:ao"? "þótt:st" "að:st"?    # ERROR
+    | "jafnvel:ao"? "þó:st" "að:st"?    # ERROR -- verður að hafa að
     | "þrátt_fyrir:ao" 'það:pfn'_hk_þf_et? "að:st"
 
 Afleiðingartenging →
@@ -441,7 +442,7 @@ Afleiðingartenging →
     | "þannig:ao" "að:st"
 
 Orsakartenging →
-    "fyrst:ao" "að:st"?
+    "fyrst:ao" "að:st"?    # ERROR
     | 'sökum:fs'_ef 'það:pfn'_hk_ef_et "að:st"
     | 'sakir:fs'_ef 'það:pfn'_hk_ef_et "að:st"
     | 'úr:fs'_þgf 'það:pfn'_hk_þgf_et "að:st"
@@ -453,7 +454,7 @@ Orsakartenging →
     | "þar:ao" "sem:st"
 
 Skilyrðistenging →
-    "ef:st" "að:st"?
+    "ef:st" "að:st"?    # ERROR
     | "svo:ao" "framarlega:ao" "sem:st"
     | "nema:st"
 
@@ -570,8 +571,7 @@ SamanburðurNl →
 
 SamanburðarNlTenging →
     "heldur:st" "en:st"             # 'Forseti á ekki að gera meiri breytingu á sér heldur en forsætisráðherra'
-    | ','? "eins:ao" "og:st"        # 'Hann á ekki andstæðinga eins og aðrir kjörnir fulltrúar'
-    | ','? 'líkt_og:st'
+    | ','? Samanburðartenging        # 'Hann á ekki andstæðinga eins og aðrir kjörnir fulltrúar'
     | Samanburðarmerki? "þar:ao" "af:ao"  # 'Fjöldi barna var í vélinni, þar af tvö kornabörn'
     | Samanburðarmerki? 'þar_á_meðal:ao'
     | Samanburðarmerki? "þar:ao" "á:ao" "meðal:ao"
@@ -621,7 +621,7 @@ Setning_et_p3_hk →
     # (-> Það er um að ræða þriggja ára stelpu)
     | SetningUmAðRæða
     # 'Það/nú/alltaf er/var/væri verið að reka fólk burt af jörðum sínum'
-    # ('verið' er ekki til sem LHÞT, en það er hins vegar 'búið' o.fl.)
+    # ('verið' er ekki til sem LHÞT, en það er hins vegar 'búið' o.fl.)    # ERROR -- bæta við í bín? og/eða er þetta villa?
     | SetningForskeyti 'vera:so'_gm_p3_et 'vera:so'_sagnb NhFyllingAtv
     | 'það:pfn'_hk_nf_et 'vera:so'_gm_p3_et 'vera:so'_sagnb NhFyllingAtv
 
@@ -700,7 +700,7 @@ SetningLoSögn →
     | HjSögnMegiSkuli_et_p3? so_0_mm_p3_et # sýnist/virðist/telst, má teljast
     | HjSögnMegiSkuli_et_p3 so_0_nh # má telja, skal ætla
     | 'þykja:so'_et_p3 # '(öruggt) þykir (að Jón vinni mótið)'
-    | 'vera:so'_gm_p3_et 'vera:so'_sagnb # Hægt og bítandi er/var/væri verið (að ýta fólki burt)
+    | 'vera:so'_gm_p3_et 'vera:so'_sagnb # Hægt og bítandi er/var/væri verið (að ýta fólki burt)    # ERROR
 
 # Ekkert frumlag í nefnifalli, sögn sem sagnbót (oft í miðmynd):
 # 'Í dag er búist við vondu veðri eftir hádegi'
@@ -756,7 +756,7 @@ SetningSo →
 
 Sagnliður_lhþt →
     EinSögn_lhþt/tala/kyn OgSögn_lhþt/tala/kyn* HjSögnLhÞt_p3/tala
-        NlFrumlag_nf/tala/kyn AtvFsAuka? # Teknar og skráðar hafa verið ákvarðanir í málinu
+        NlFrumlag_nf/tala/kyn AtvFsAuka? # Teknar og skráðar hafa verið ákvarðanir í málinu    # ERROR -- mætti merkja sem leiðinlegt orðalag?
 
 $score(-4) Sagnliður_lhþt # Knúsað orðalag - velja annað ef í boði
 
@@ -788,7 +788,7 @@ VeraSkulu_et_p3 →
 # 'Mér sýnist að öllu sé óhætt' (? Það sýnist mér að öllu sé óhætt),
 # 'Helmingi ungmenna finnst skólinn skemmtilegur' (? Það finnst helmingi ungmenna skólinn skemmtilegur)
 
-SetningAukafall →
+SetningAukafall →    # ERROR -- hér mætti auðvitað tengja í villureglur, t.d. fyrir þágufallshneigð
 
     # Manninn langaði mjög í ferðina / að fara til útlanda strax
     # Köttum í landinu fjölgar
@@ -961,7 +961,7 @@ MiðmyndarBotnLo →
 $score(+4) MiðmyndarBotnLo # Gefa plús fyrir heildstætt samhengi lýsingarorðs
 
 VeraInnskot →
-    HjSögnVera nhm    # vera að / geta hafa verið að / verðir að / hafa orðið að...
+    HjSögnVera nhm    # vera að / geta hafa verið að / verðir að / hafa orðið að...    # ERROR
 
 Nl_nf_þf/tala → Nl_nf/tala | Nl_þf/tala
 
@@ -1022,7 +1022,7 @@ Sagnliður/tala/pers/kyn →
     | ÖfugSögn_1/tala/pers/kyn
     | ÖfugSögn_2/tala/pers/kyn
 
-    # !!! Bæta við ÖfugSögn_sagnb, _nh, _lhþt hér
+    # !!! Bæta við ÖfugSögn_sagnb, _nh, _lhþt hér    # TODO
 
 # Sagnliður án sýnilegs frumlags: Í dag þarf að vökva grasið (=Það þarf að vökva grasið í dag)
 # Sagnliður án frumlags þarf að geta staðið sem afleiðing í ef-þegar setningu:
@@ -1062,7 +1062,7 @@ HreinSögnAtv_nh →
 
 # Sagnliður sem hefst á viðtengingarhætti:
 # 'Haldi þessi þróun áfram er voðinn vís / þarf að grípa til aðgerða'
-
+    # TODO hér þyrfti að leyfa að setja "þá" á milli, mætti merkja sem óþarft samt. Komma þarf líka að leyfast, s.s. í aðalreglunni. Finna hvar þetta er notað.
 SagnliðurVh →
 
     # Haldir þú [áfram að borða] (er voðinn vís)
@@ -1408,11 +1408,13 @@ SögnMeðF_0/tala/pers/kyn →
     so_0/tala/pers OgSögn_0/tala/pers* FsRuna? NlFrumlag_nf/tala/pers/kyn NhFylling/tala/kyn?
 
     # (Í dag) tókst og heppnaðist Seðlabankanum [galvöskum að lækka vexti]
-    # !!! Ath: ekki _fh hér þar sem _vh er leyfilegt (takist Seðlabankanum...)
-    # !!! Ath: Sögnin er óháð frumlaginu í tölu og persónu, hún er í reynd
-    # !!! í 3p. et. (sbr. ?'Það tekst veiðimönnunum að veiða þann stóra')
+    # !!! Ath: ekki _fh hér þar sem _vh er leyfilegt (takist Seðlabankanum...)  # TODO
+    # !!! Ath: Sögnin er óháð frumlaginu í tölu og persónu, hún er í reynd      
+    # !!! í 3p. et. (sbr. ?'Það tekst veiðimönnunum að veiða þann stóra')       # ERROR
+    # Ópersónuleg notkun almennt persónubeygðra sagna?
     | so_mm_et_p3 OgSögn_mm_et_p3* NlFrumlag_þgf/tala/pers/kyn NhFylling_þgf/tala/kyn?
 
+    # Ópersónuleg notkun almennt persónubeygðra sagna?
     # (Í dag) ber stjórnvöldum að taka hætturnar alvarlega
     | so_subj_gm_op_p3_et_þgfnh NlFrumlag_þgf/tala/pers/kyn NhFylling/tala/kyn
 
@@ -1443,7 +1445,7 @@ SögnMeðF_0/tala/pers/kyn →
     | HjSögnLhÞtSM/tala/pers NlFrumlag_nf/tala/pers/kyn HreinSögn_lhþt/tala/kyn
 
     # (Hér) væri [ennfremur] komin mikil framleiðsluspenna
-    # Ath: Hjálparsögnin er í 3p þó frumlagið sé það ekki, sbr.
+    # Ath: Hjálparsögnin er í 3p þótt frumlagið sé það ekki, sbr.
     # 'Hér er ennfremur kominn þú' (ekki 'ert')
     | HjSögnLhÞtSM_p3/tala FsAtv? so_0_lhþt/tala/kyn NlFrumlag_nf/tala/kyn
 
