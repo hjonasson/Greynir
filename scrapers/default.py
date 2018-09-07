@@ -237,10 +237,34 @@ class ScrapeHelper:
         return soup.find(f)
 
     @staticmethod
+    def del_tag_prop_val(soup, tag, prop, val):
+        """ Delete all occurrences of the tag having the property with the given value """
+        if soup is None:
+            return
+        while True:
+            s = ScrapeHelper.tag_prop_val(soup, tag, prop, val)
+            if s is None:
+                break
+            s.decompose()
+
+    @staticmethod
     def del_div_class(soup, *argv):
         """ Delete all occurrences of the specified div.class """
+        if soup is None:
+            return
         while True:
             s = ScrapeHelper.div_class(soup, *argv)
+            if s is None:
+                break
+            s.decompose()
+
+    @staticmethod
+    def del_tag(soup, tag_name):
+        """ Delete all occurrences of the specified tag """
+        if soup is None:
+            return
+        while True:
+            s = soup.find(lambda tag: tag.name == tag_name)
             if s is None:
                 break
             s.decompose()
@@ -379,12 +403,14 @@ class RuvScraper(ScrapeHelper):
             content = ScrapeHelper.div_class(soup_body, "view-content", "second")
         if content is None:
             # Fallback to outermost block
-            content = ScrapeHelper.div_class(soup_body,
-                ("block", "block-system"))
+            content = ScrapeHelper.div_class(soup_body, ("block", "block-system"))
         ScrapeHelper.del_div_class(content, "pane-custom") # Sharing stuff at bottom of page
         ScrapeHelper.del_div_class(content, "title-wrapper") # Additional header stuff
         ScrapeHelper.del_div_class(content, "views-field-field-user-display-name") # Seriously.
         ScrapeHelper.del_div_class(content, "field-name-myndatexti-credit-source")
+        ScrapeHelper.del_div_class(content, "region-conditional-stack")
+        ScrapeHelper.del_tag(content, "twitterwidget")
+        ScrapeHelper.del_div_class(content, "pane-author")
         return content
 
 
@@ -403,7 +429,8 @@ class MblScraper(ScrapeHelper):
         "/myndasafn/",
         "/atvinna/",
         "/vidburdir/",
-        "/sport/"
+        "/sport/",
+        "/mogginn/"
     ]
 
     def __init__(self, root):
@@ -584,12 +611,9 @@ class VisirScraper(ScrapeHelper):
             # Check for an author name at the start of the article
             article = ScrapeHelper.div_class(soup, "articlewrapper")
             if article:
-                writer = ScrapeHelper.div_class(article, "meta")
-                if writer:
-                    writer = writer.string
-                    if writer.endswith(" skrifar"):
-                        # 'Jón Jónsson skrifar'
-                        author = writer[0:-8]
+                author = ScrapeHelper.div_class(article, "meta")
+                if author:
+                    author = author.string
             else:
                 # Updated format of Visir.is
                 article = ScrapeHelper.div_class(soup, "article-single__meta")
@@ -598,8 +622,18 @@ class VisirScraper(ScrapeHelper):
                         author = article.span.a.string
                     except:
                         author = ""
+                    if not author:
+                        try:
+                            author = article.span.string
+                        except:
+                            pass
         if not author:
             author = "Ritstjórn visir.is"
+        else:
+            author = author.strip()
+            if author.endswith(" skrifar"):
+                # 'Jón Jónsson skrifar'
+                author = author[0:-8]
         metadata.heading = heading.strip()
         metadata.author = author
         metadata.timestamp = timestamp

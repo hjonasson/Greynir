@@ -48,6 +48,7 @@
    position: relative;
    top: 2px;
    display: inline-block;
+   /*noinspection CssNoGenericFontName*/
    font-family: 'Glyphicons Regular';
    font-style: normal;
    font-weight: normal;
@@ -184,6 +185,11 @@ p.header {
    margin-bottom: 24px;
 }
 
+.container > .navbar-header {
+   margin-left: -6px;
+   margin-right: -6px;
+}
+
 div.input {
    padding-top: 36px;
    padding-bottom: 36px;
@@ -219,6 +225,49 @@ div.tab-pane {
 div.text-container {
    padding-top: 80px;
    font-size: 1.15em;
+}
+
+ul.nav-tabs span.glyphicon {
+   margin-right: 12px;
+}
+
+div#stats-panel {
+   max-width: 512px;
+}
+
+@media(max-width: 768px) {
+
+   /* Adjustments for mobile only */
+   div.container-fluid.text-container {
+      padding-left: 4px;
+      padding-right: 4px;
+   }
+   div.container.text-container {
+      padding-left: 4px;
+      padding-right: 4px;
+   }
+   .navbar-nav > li > a {
+      /* Dropdown menu items */
+      padding-left: 22px;
+   }
+
+}
+
+@media(max-width: 480px) {
+
+   ul.nav-tabs span.glyphicon {
+      /* Make tab headings narrower by reducing spacing between icon and text */
+      margin-right: 2px;
+   }
+   ul.nav-tabs > li > a {
+      /* Make tab headings narrower by reducing margins */
+      padding-left: 10px;
+      padding-right: 10px;
+   }
+   div#stats-panel {
+      max-width: 380px;
+   }
+
 }
 
 div.input-overlay {
@@ -300,10 +349,6 @@ div.wait {
    text-align: center;
 }
 
-ul.nav-tabs span.glyphicon {
-   margin-right: 12px;
-}
-
 div#toplist {
    padding-top: 16px;
 }
@@ -369,7 +414,7 @@ td.ratio div.progress div.progress-bar {
 }
 
 tr.topitem span.name {
-   font-weight: bold;
+   font-weight: 700;
    white-space: nowrap;
    overflow-x: hidden;
    text-overflow: ellipsis;
@@ -388,6 +433,11 @@ tr.topitem span.title {
    cursor: pointer;
 }
 
+#namelist span.name,
+#namelist span.entity {
+   font-weight: 700;
+}
+
 #namelist span.name:hover,
 #namelist span.entity:hover,
 #similarlist span.heading:hover {
@@ -403,8 +453,8 @@ tr.topitem span.title {
 }
 
 #similarlist li img {
-   margin-left: 10px;
-   margin-right: 8px;
+   margin-left: 8px;
+   margin-right: 4px;
 }
 
 #similarlist li span.similarity {
@@ -416,7 +466,7 @@ tr.topitem span.title {
 
 #similarlist span.timestamp {
    display: inline-block;
-   min-width: 96px;
+   min-width: 90px;
    color: #888888;
 }
 
@@ -434,11 +484,18 @@ td.gender, th.gender {
 
 td.name {
    min-width: 200px;
+   font-weight: 700;
+}
+
+td.domain {
+   font-weight: 700;
+   color: #777777;
 }
 
 #entity-body span.name,
 #entity-body span.entity
  {
+   font-weight: 700;
    color: #337ab7;
    cursor: pointer;
 }
@@ -483,7 +540,7 @@ p.image {
    padding-bottom: 0;
 }
 
-div.info {
+div#info {
    visibility: hidden;
    position: absolute;
    background-color: #eeeeee;
@@ -492,79 +549,79 @@ div.info {
    z-index: 10;
    min-width: 160px;
    max-width: 360px;
-   margin-top: 48px;
+   margin-top: 60px;
    padding-top: 6px;
    padding-bottom: 6px;
    padding-left: 12px;
    padding-right: 12px;
 }
 
-div.info.kk,
-div.info.kvk,
-div.info.hk,
-div.info.fn,
-div.info.abfn,
-div.info.pfn,
-div.info.person.male {
+div#info.kk,
+div#info.kvk,
+div#info.hk,
+div#info.fn,
+div#info.abfn,
+div#info.pfn,
+div#info.person.male {
    background-color: #d9edf7;
 }
 
-div.info.lo {
+div#info.lo {
    background-color: #dff0d8;
 }
 
-div.info.so,
-div.info.nhm,
-div.info.person.female {
+div#info.so,
+div#info.nhm,
+div#info.person.female {
    background-color: #f2dede;
 }
 
-div.info.st {
+div#info.st {
    background-color: #fcf8e3;
 }
 
-div.info p {
+div#info p {
    margin-top: 0px;
    margin-bottom: 4px;
    padding: 0;
 }
 
-div.info #tag {
+div#info #tag {
    display: inline-block;
    float: left;
    padding-right: 6px;
    padding-bottom: 2px;
 }
 
-div.info.fn #tag,
-div.info.pfn #tag,
-div.info.abfn #tag,
-div.info.person.male #tag,
-div.info.kk #tag,
-div.info.kvk #tag,
-div.info.hk #tag {
+div#info.fn #tag,
+div#info.pfn #tag,
+div#info.abfn #tag,
+div#info.person.male #tag,
+div#info.kk #tag,
+div#info.kvk #tag,
+div#info.hk #tag {
    color: #337ab7;
 }
 
-div.info.lo #tag {
+div#info.lo #tag {
    color: #5cb85c;
 }
 
-div.info.nhm #tag,
-div.info.so #tag,
-div.info.person.female #tag {
+div#info.nhm #tag,
+div#info.so #tag,
+div#info.person.female #tag {
    color: #d9534f;
 }
 
-div.info.st #tag {
+div#info.st #tag {
    color: #f0ad4e;
 }
 
-div.info #lemma {
-   font-weight: bold;
+div#info #lemma {
+   font-weight: 700;
 }
 
-div.info #details {
+div#info #details {
    margin-top: 4px;
    font-style: italic;
 }
@@ -586,18 +643,26 @@ h3.help small {
 }
 
 span.sent {
-   margin-left: -2px;
-   margin-right: 4px;
+   margin-left: -4px;
+   margin-right: -2px;
+   padding-left: 4px;
+   padding-right: 4px;
+   padding-bottom: 2px;
    cursor: pointer;
-   border-width: 2px;
+   border-width: 1px;
    border-style: solid;
-   border-radius: 4px;
+   border-radius: 5px;
    border-color: transparent;
+   line-height: 28px;
 }
 
 span.sent.err {
+   /*
    background: url(wiggle.png) repeat-x bottom left;
    background-size: 4px 3px;
+   */
+   border-color: #CB333B;
+   border-style: dotted;
 }
 
 span.sent.err:hover {
@@ -606,13 +671,13 @@ span.sent.err:hover {
 }
 
 span.errtok {
-   font-weight: 600;
+   font-weight: 700;
    color: #CB333B; /* Greynir red */
 }
 
 /*
 span.sent.err:hover span.errtok {
-   font-weight: 600;
+   font-weight: 700;
    color: #CB333B;
 }
 */
@@ -634,61 +699,73 @@ div#result {
 
 div#result i {
    font-style: normal;
+   border-radius: 5px;
+   border-width: 1px;
+   border-style: solid;
+   border-color: /* grey */ transparent;
+   padding-left: 1px;
+   padding-right: 1px;
+   padding-bottom: 2px;
+   margin-right: -4px;
 }
 
 div#result i.nf {
    /* Word not found */
-   font-weight: 600;
+   font-weight: 700;
    color: #CB333B; /* Greynir red */
 }
 
 div#result i.number {
-   font-weight: 600;
+   font-weight: 700;
    color: #007F33;
 }
 
 div#result i.percent {
-   font-weight: 600;
+   font-weight: 700;
    color: #337ab7;
 }
 
 div#result i.ordinal {
-   font-weight: 600;
+   font-weight: 700;
    color: #CCA500;
 }
 
 div#result i.date,
 div#result i.time,
 div#result i.timestamp {
-   font-weight: 600;
+   font-weight: 700;
    color: #CCA500;
 }
 
 div#result i.currency {
-   font-weight: 600;
+   font-weight: 700;
    color: #007F33;
 }
 
 div#result i.amount {
-   font-weight: 600;
+   font-weight: 700;
    color: #007F33;
 }
 
 div#result i.person {
+/*
    border-width: 2px;
    border-style: solid;
    border-radius: 4px;
    margin-right: 1px;
    padding-left: 2px;
    padding-right: 2px;
-   /* color: white; */
    color: black;
+*/
    /* Specific settings */
-   background-color: #d7e6f4; /* #609dd2; #337ab7 */
-   border-color: #d7e6f4; 
+   /* background-color: #d7e6f4; */ /* #609dd2; */
+   color: #337ab7;
+   font-weight: 700;
+   /* border-color: #337ab7; */
 }
 
 div#result i.entity {
+/*
    border-width: 2px;
    border-style: solid;
    border-radius: 4px;
@@ -696,37 +773,57 @@ div#result i.entity {
    padding-left: 2px;
    padding-right: 2px;
    color: black;
+*/
    /* Specific settings */
-   background-color: #fbe9d0; /* #f2e6ff; #cc99ff; #a64dff */
-   border-color: #fbe9d0;
+   /* background-color: #fbe9d0; */ /* #f2e6ff; #cc99ff; #a64dff */
+   /* border-color: #fbe9d0; */
+   color: #777777;
+   font-weight: 700;
 }
 
 div#result i.year,
 div#result i.telno,
 div#result i.email {
-   font-weight: 600;
+   color: #777777;
+   font-weight: 700;
 }
 
 div#result i:hover {
+   /*
    outline-width: 1px;
    outline-style: solid;
    outline-color: #777777;
-   background-color: #777777;
+   */
    color: white;
+   background-color: #777777;
+   border-color: #777777;
+}
+
+div#result i.p:hover {
+   color: black;
+   background-color: transparent;
+   border-color: transparent;
 }
 
 div#result i.person:hover {
    /* Special case for person: just make background darker */
+   /*
    outline: none;
    background-color: #337ab7;
    border-color: #337ab7;
+   */
+   border-color: #337ab7; 
+   background-color: #337ab7; 
 }
 
 div#result i.entity:hover {
    /* Special case for entity: just make background darker */
+   /*
    outline: none;
-   background-color: #f0ad4e; /* #a64dff; */
-   border-color: #f0ad4e; /* #a64dff; */
+   background-color: #f0ad4e;
+   border-color: #f0ad4e;
+   */
+   border-color: #fbe9d0;
 }
 
 /* Noun-type word: blue color */
@@ -735,26 +832,30 @@ div#result i.kvk:hover,
 div#result i.hk:hover,
 div#result i.fn:hover,
 div#result i.pfn:hover {
-   outline-color: #337ab7;
+   /* outline-color: #337ab7; */
+   border-color: #337ab7;
    background-color: #337ab7;
 }
 
 /* Verb-type word: red color */
 div#result i.so:hover,
 div#result i.nhm:hover {
-   outline-color: #d9534f;
+   /* outline-color: #d9534f; */
+   border-color: #d9534f;
    background-color: #d9534f;
 }
 
 /* Adjective-type word: green color */
 div#result i.lo:hover {
-   outline-color: #5cb85c;
+   /* outline-color: #5cb85c; */
+   border-color: #5cb85c;
    background-color: #5cb85c;
 }
 
 /* Conjunction-type word: yellow color */
 div#result i.st:hover {
-   outline-color: #f0ad4e;
+   /* outline-color: #f0ad4e; */
+   border-color: #f0ad4e;
    background-color: #f0ad4e;
 }
 
@@ -811,7 +912,7 @@ th.neutral, td.neutral {
 }
 
 tfoot tr td {
-   font-weight: bold;
+   font-weight: 700;
 }
 
 table.table thead th {
@@ -914,7 +1015,7 @@ td.t span.tok {
    font-size: 16px;
    line-height: 24px;
    font-style: normal;
-   font-weight: bold;
+   font-weight: 700;
 }
 
 h4.txt {
@@ -1022,12 +1123,8 @@ button#edit-sent {
    margin-right: 12px;
 }
 
-div#stats-panel {
-   max-width: 380px;
-}
-
 div#stats-panel td.count {
-   font-weight: bold;
+   font-weight: 700;
 }
 
 td.explain {

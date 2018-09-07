@@ -4,7 +4,8 @@
 
     Query module
 
-    Copyright (C) 2016 Vilhjálmur Þorsteinsson
+    Copyright (C) 2018 Miðeind ehf.
+    Original author: Vilhjálmur Þorsteinsson
 
        This program is free software: you can redistribute it and/or modify
        it under the terms of the GNU General Public License as published by
@@ -33,12 +34,13 @@ from collections import namedtuple, defaultdict
 from settings import Settings, changedlocale
 from scraperdb import desc, Root, Article, Person, Entity, \
     RelatedWordsQuery, ArticleCountQuery, ArticleListQuery
-from bindb import BIN_Db
+from reynir.bindb import BIN_Db
 from tree import Tree
 from treeutil import TreeUtility
-from tokenizer import TOK, correct_spaces, stems_of_token
-from fastparser import Fast_Parser, ParseForestDumper, ParseForestPrinter, ParseError
-from reducer import Reducer
+from tokenizer import TOK, correct_spaces
+from reynir.bintokenizer import stems_of_token
+from reynir.fastparser import Fast_Parser, ParseForestDumper, ParseForestPrinter, ParseError
+from reynir.reducer import Reducer
 from search import Search
 
 
@@ -189,7 +191,7 @@ def make_response_list(rd):
             # Find the age of the article, in whole days
             age = max(0, (now - a["timestamp"]).days)
             # Create an appropriately shaped and sloped age decay function
-            div_factor = 1.0 + (math.log(age + 4, base = 4))
+            div_factor = 1.0 + (math.log(age + 4, 4))
             w += 14.0 / div_factor
         # A single mention is only worth 1/e of a full (multiple) mention
         if len(newest_mentions) == 1:
@@ -379,7 +381,7 @@ def query_title(query, session, title):
     # !!! Consider doing a LIKE '%title%', not just LIKE 'title%'
     rd = defaultdict(dict)
     title_lc = title.lower() # Query by lowercase title
-    q = session.query(Person.name, Article.id, Article.timestamp, \
+    q = session.query(Person.name, Article.id, Article.timestamp,
         Article.heading, Root.domain, Article.url) \
         .filter(Person.title_lc.like(title_lc + ' %') | (Person.title_lc == title_lc)) \
         .filter(Root.visible == True) \
@@ -389,7 +391,7 @@ def query_title(query, session, title):
     # Append names from the persons table
     append_names(rd, q, prop_func = lambda x: x.name)
     # Also append definitions from the entities table, if any
-    q = session.query(Entity.name, Article.id, Article.timestamp, \
+    q = session.query(Entity.name, Article.id, Article.timestamp,
         Article.heading, Root.domain, Article.url) \
         .filter(Entity.definition == title) \
         .filter(Root.visible == True) \
@@ -402,7 +404,7 @@ def query_title(query, session, title):
 
 def _query_entity_definitions(session, name):
     """ A query for definitions of an entity by name """
-    q = session.query(Entity.verb, Entity.definition, Article.id, Article.timestamp, \
+    q = session.query(Entity.verb, Entity.definition, Article.id, Article.timestamp,
         Article.heading, Root.domain, Article.url) \
         .filter(Entity.name == name) \
         .filter(Root.visible == True) \
@@ -434,7 +436,7 @@ def query_company(query, session, name):
     while qname and qname[-1] == '.':
         qname = qname[:-1]
         use_like = True
-    q = session.query(Entity.verb, Entity.definition, Article.id, Article.timestamp, \
+    q = session.query(Entity.verb, Entity.definition, Article.id, Article.timestamp,
         Article.heading, Root.domain, Article.url) \
         .filter(Root.visible == True) \
         .join(Article).join(Root) \
@@ -627,7 +629,6 @@ class Query:
         self._qtype = None
         self._key = None
         self._toklist = None
-
     
     @staticmethod
     def _parse(toklist):
@@ -680,7 +681,6 @@ class Query:
         result = dict(num_sent = num_sent, num_parsed_sent = num_parsed_sent)
         return result, trees
 
-
     def parse(self, toklist, result):
         """ Parse the token list as a query, returning True if valid """
 
@@ -721,7 +721,6 @@ class Query:
         self._toklist = toklist
         return True
 
-
     def execute(self):
         """ Execute the query contained in the previously parsed tree; return True if successful """
         if self._tree is None:
@@ -735,50 +734,40 @@ class Query:
 
         return self._error is None
 
-
     def set_qtype(self, qtype):
         """ Set the query type ('Person', 'Title', 'Company', 'Entity'...) """
         self._qtype = qtype
 
-
     def set_answer(self, answer):
         """ Set the answer to the query """
         self._answer = answer
-
 
     def set_key(self, key):
         """ Set the query key, i.e. the term or string used to execute the query """
         # This is for instance a person name in nominative case
         self._key = key
 
-
     def set_error(self, error):
         """ Set an error result """
         self._error = error
-
 
     def qtype(self):
         """ Return the query type """
         return self._qtype
 
-
     def answer(self):
         """ Return the query answer """
         return self._answer
-
 
     def key(self):
         """ Return the query key """
         return self._key
 
-
     def token_list(self):
         """ Return the token list for the query """
         return self._toklist
 
-
     def error(self):
         """ Return the query error, if any """
         return self._error
-
 

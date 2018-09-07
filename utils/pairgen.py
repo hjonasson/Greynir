@@ -5,7 +5,7 @@
 
     Text and parse tree pair generator
 
-    Copyright (C) 2017 Miðeind ehf.
+    Copyright (C) 2018 Miðeind ehf.
 
        This program is free software: you can redistribute it and/or modify
        it under the terms of the GNU General Public License as published by
@@ -66,10 +66,11 @@ def gen_flat_trees(generator):
     # Exclude sentences containing English words
     STOP_WORDS = frozenset([
         "the", "a", "is", "each", "year", "our", "on", "in",
-        "and", "this", "that", "s", "t", "don't", "isn't"
+        "and", "this", "that", "s", "t", "don't", "isn't", "big",
+        "cheese", "steak", "email"
     ])
     for stree in generator:
-        flat, text = stree.flat, stree.text
+        flat, text = stree.flat_with_all_variants, stree.text
         tokens = text.split()
         # Exclude sentences with 2 or fewer tokens
         if len(tokens) > 2:
@@ -100,12 +101,16 @@ def write_shuffled_files(outfile_dev, outfile_train, generator, dev_size, train_
     lines = []
     size = dev_size + train_size
     print(f"Reading up to {size} lines from the source corpus")
-    for text, flat in gen_flat_trees(generator):
-        # Accumulate the (input, output) training data pairs, separated by a tab character (\t)
-        lines.append(f"{text}\t{flat}\n")
-        written += 1
-        if written >= size:
-            break
+    try:
+        for text, flat in gen_flat_trees(generator):
+            # Accumulate the (input, output) training data pairs, separated by a tab character (\t)
+            lines.append(f"{text}\t{flat}\n")
+            written += 1
+            if written >= size:
+                break
+    except Exception as e:
+        print(f"Exception {e} after {written} generated lines")
+        return 0
     if written:
         print(f"Shuffling {written} lines from the source corpus")
         random.shuffle(lines)
@@ -178,7 +183,7 @@ if __name__ == "__main__":
         help="number of sentences in the development set (default 20,000)", default=20000)
     parser.add_argument('--train', dest='TRAIN_SIZE', type=int,
         help="number of sentences in the training set (default 1,500,000)", default=1500000)
-    parser.add_argument('--noshuffle', dest='NO_SHUFFLE', type=bool,
+    parser.add_argument('--noshuffle', dest='NO_SHUFFLE', action="store_true",
         help="do not shuffle output", default=False)
 
     args = parser.parse_args()

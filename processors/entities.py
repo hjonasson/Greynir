@@ -34,8 +34,9 @@
 
 import re
 from datetime import datetime
+
 from scraperdb import Entity
-from settings import Abbreviations
+from reynir import Abbreviations
 
 
 MODULE_NAME = __name__
@@ -110,6 +111,12 @@ def sentence(state, result):
         if len(entity) < 2 or len(definition) < 2:
             # Avoid chaff
             continue
+
+        # Cut phrases off the front
+        for p in ("sem er ", "jafnframt er "):
+            if definition.startswith(p):
+                definition = definition[len(p):]
+                break
 
         def def_ok(definition):
             """ Returns True if a definition meets basic sanity criteria """

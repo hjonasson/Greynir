@@ -37,7 +37,8 @@ resources/*.txt
 !resources/ordalisti.sorted.txt
 !resources/obeygd.hreinsad.txt
 resources/*.csv
-resources/*.tmLanguage
+resources/ord.compressed
+#resources/*.tmLanguage
 resources/visir/
 resources/reykjanes/
 mim/
@@ -107,6 +108,7 @@ venv/
 p35/
 p358/
 p359/
+p3510/
 
 # Installer logs
 pip-log.txt

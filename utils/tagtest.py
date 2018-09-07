@@ -5,7 +5,7 @@
 
     Tagging test and training program
 
-    Copyright (C) 2017 Miðeind ehf.
+    Copyright (C) 2018 Miðeind ehf.
 
        This program is free software: you can redistribute it and/or modify
        it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ def test_tagger():
     TEST_SET = 400
     BEAM_SIZE = 250 # A higher number does not seem to yield improved results
 
-
+    # noinspection PyUnreachableCode
     if False:
         tnt_tagger = TnT(N = BEAM_SIZE, C = True)
         tagger = NgramTagger(n = 3, verbose = False)

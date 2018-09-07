@@ -3,7 +3,7 @@
 
     Settings module
 
-    Copyright (c) 2017 Miðeind ehf.
+    Copyright (c) 2018 Miðeind ehf.
 
        This program is free software: you can redistribute it and/or modify
        it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ from contextlib import contextmanager, closing
 from collections import defaultdict
 from threading import Lock
 
+import reynir
 
 # The sorting locale used by default in the changedlocale function
 _DEFAULT_SORT_LOCALE = ('IS_is', 'UTF-8')
@@ -120,192 +121,6 @@ class LineReader:
                 # This is an outermost config file
                 c = ConfigError("Error while opening or reading config file '{0}'".format(self._fname))
             raise c
-
-
-class Abbreviations:
-
-    """ Wrapper around dictionary of abbreviations, initialized from the config file """
-
-    # Dictionary of abbreviations and their meanings
-    DICT = { }
-    # Single-word abbreviations, i.e. those with only one dot at the end
-    SINGLES = set()
-    # Potential sentence finishers, i.e. those with a dot at the end, marked with an asterisk
-    # in the config file
-    FINISHERS = set()
-    # Abbreviations that should not be seen as such at the end of sentences, marked with
-    # an exclamation mark in the config file
-    NOT_FINISHERS = set()
-    # Abbreviations that should not be seen as such at the end of sentences, but
-    # are allowed in front of person names; marked with a hat ^ in the config file
-    NAME_FINISHERS = set()
-
-    @staticmethod
-    def add (abbrev, meaning, gender, fl = None):
-        """ Add an abbreviation to the dictionary. Called from the config file handler. """
-        # Check for sentence finishers
-        finisher = False
-        not_finisher = False
-        name_finisher = False
-        if abbrev.endswith("*"):
-            # This abbreviation is explicitly allowed to finish a sentence
-            finisher = True
-            abbrev = abbrev[0:-1]
-            if not abbrev.endswith("."):
-                raise ConfigError("Only abbreviations ending with periods can be sentence finishers")
-        elif abbrev.endswith("!"):
-            # A not-finisher cannot finish a sentence, because it is also a valid word
-            # (Example: 'dags.', 'mín.', 'sek.')
-            not_finisher = True
-            abbrev = abbrev[0:-1]
-            if not abbrev.endswith("."):
-                raise ConfigError("Only abbreviations ending with periods can be marked as not-finishers")
-        elif abbrev.endswith("^"):
-            # This abbreviation can be followed by a name; in other aspects it is like a not-finisher
-            # (Example: 'próf.')
-            name_finisher = True
-            abbrev = abbrev[0:-1]
-            if not abbrev.endswith("."):
-                raise ConfigError("Only abbreviations ending with periods can be marked as name finishers")
-        if abbrev.endswith("!") or abbrev.endswith("*") or abbrev.endswith("^"):
-            raise ConfigError("!, * and ^ modifiers are mutually exclusive on abbreviations")
-        # Append the abbreviation and its meaning in tuple form
-        Abbreviations.DICT[abbrev] = (meaning, 0, gender, "skst" if fl is None else fl, abbrev, "-")
-        if abbrev[-1] == '.' and '.' not in abbrev[0:-1]:
-            # Only one dot, at the end
-            Abbreviations.SINGLES.add(abbrev[0:-1]) # Lookup is without the dot
-        if finisher:
-            Abbreviations.FINISHERS.add(abbrev)
-        if not_finisher or name_finisher:
-            # Both name finishers and not-finishers are added to the NOT_FINISHERS set
-            Abbreviations.NOT_FINISHERS.add(abbrev)
-        if name_finisher:
-            Abbreviations.NAME_FINISHERS.add(abbrev)
-
-    @staticmethod
-    def has_meaning(abbrev):
-        return abbrev in Abbreviations.DICT
-
-    @staticmethod
-    def get_meaning(abbrev):
-        """ Lookup meaning of abbreviation, if available """
-        return None if abbrev not in Abbreviations.DICT else Abbreviations.DICT[abbrev][0]
-
-class Meanings:
-
-    """ Wrapper around list of additional word meanings, initialized from the config file """
-
-    # Dictionary of additional words and their meanings
-    DICT = defaultdict(list) # Keyed by word form
-    ROOT = defaultdict(list) # Keyed by word root (stem)
-
-    # All possible declination forms of adjectives (48 in total)
-    _UNDECLINED_ADJECTIVE_TEMPLATE = [
-        "FVB-HK-EFFT",
-        "FVB-HK-ÞGFFT",
-        "FVB-HK-ÞFFT",
-        "FVB-HK-NFFT",
-        "FVB-HK-EFET",
-        "FVB-HK-ÞGFET",
-        "FVB-HK-ÞFET",
-        "FVB-HK-NFET",
-        "FVB-KVK-EFFT",
-        "FVB-KVK-ÞGFFT",
-        "FVB-KVK-ÞFFT",
-        "FVB-KVK-NFFT",
-        "FVB-KVK-EFET",
-        "FVB-KVK-ÞGFET",
-        "FVB-KVK-ÞFET",
-        "FVB-KVK-NFET",
-        "FVB-KK-EFFT",
-        "FVB-KK-ÞGFFT",
-        "FVB-KK-ÞFFT",
-        "FVB-KK-NFFT",
-        "FVB-KK-EFET",
-        "FVB-KK-ÞGFET",
-        "FVB-KK-ÞFET",
-        "FVB-KK-NFET",
-        "FSB-HK-EFFT",
-        "FSB-HK-ÞGFFT",
-        "FSB-HK-ÞFFT",
-        "FSB-HK-NFFT",
-        "FSB-HK-EFET",
-        "FSB-HK-ÞGFET",
-        "FSB-HK-ÞFET",
-        "FSB-HK-NFET",
-        "FSB-KVK-EFFT",
-        "FSB-KVK-ÞGFFT",
-        "FSB-KVK-ÞFFT",
-        "FSB-KVK-NFFT",
-        "FSB-KVK-EFET",
-        "FSB-KVK-ÞGFET",
-        "FSB-KVK-ÞFET",
-        "FSB-KVK-NFET",
-        "FSB-KK-EFFT",
-        "FSB-KK-ÞGFFT",
-        "FSB-KK-ÞFFT",
-        "FSB-KK-NFFT",
-        "FSB-KK-EFET",
-        "FSB-KK-ÞGFET",
-        "FSB-KK-ÞFET",
-        "FSB-KK-NFET"
-    ]
-
-    _CAT_SET = None # BIN_Token word categories
-
-    @staticmethod
-    def _check_ordfl(ordfl):
-        """ Sanity check on the word category """
-        if Meanings._CAT_SET is None:
-            # Delayed import of BIN_Token
-            from binparser import BIN_Token
-            Meanings._CAT_SET = set(BIN_Token.KIND.keys())
-        if ordfl not in Meanings._CAT_SET:
-            raise ConfigError("Unknown BÍN word category: '{0}'".format(ordfl))
-
-    @staticmethod
-    def add (stofn, ordmynd, ordfl, fl, beyging):
-        """ Add word meaning to the dictionary. Called from the config file handler. """
-        assert ordmynd is not None
-        assert ordfl is not None
-        Meanings._check_ordfl(ordfl)
-        if not stofn:
-            stofn = ordmynd
-        # Append the word and its meaning in tuple form
-        if ordfl == "lo" and not beyging:
-            # Special case for undeclined adjectives:
-            # create all 48 forms
-            for b in Meanings._UNDECLINED_ADJECTIVE_TEMPLATE:
-                m = (stofn, -1, ordfl, fl or "ob", ordmynd, b)
-                Meanings.DICT[ordmynd].append(m)
-                Meanings.ROOT[stofn].append(m)
-        else:
-            m = (stofn, -1, ordfl, fl or "ob", ordmynd, beyging or "-")
-            Meanings.DICT[ordmynd].append(m)
-            Meanings.ROOT[stofn].append(m)
-
-    @staticmethod
-    def add_composite (stofn, ordfl):
-        """ Add composite word forms by putting a prefix on existing BIN word forms.
-            Called from the config file handler. """
-
-        assert stofn is not None
-        assert ordfl is not None
-        Meanings._check_ordfl(ordfl)
-        a = stofn.split("-")
-        if len(a) != 2:
-            raise ConfigError("Composite word meaning must contain a single hyphen")
-        prefix = a[0]
-        stem = a[1]
-        from bindb import BIN_Db
-        with BIN_Db.get_db() as db:
-            m = db.forms(stem)
-        if m:
-            for w in m:
-                if w.ordfl == ordfl:
-                    t = (prefix + w.stofn, -1, ordfl, w.fl, prefix + w.ordmynd, w.beyging)
-                    Meanings.DICT[prefix + w.ordmynd].append(t)
-                    Meanings.ROOT[prefix + w.stofn].append(t)
 
 
 class VerbObjects:
@@ -433,6 +248,19 @@ class DisallowedNames:
     def add(cls, name, cases):
         """ Add an adjective ending and its associated form. """
         cls.STEMS[name] = set(cases)
+
+
+class UndeclinableAdjectives:
+
+    """ Wrapper around list of undeclinable adjectives """
+
+    # Set of adjectives
+    ADJECTIVES = set()
+
+    @classmethod
+    def add(cls, wrd):
+        """ Add an adjective """
+        cls.ADJECTIVES.add(wrd)
 
 
 class StaticPhrases:
@@ -749,14 +577,6 @@ class Settings:
     except ValueError:
         raise ConfigError("Invalid environment variable value: DB_PORT = {0}".format(DB_PORT))
 
-    BIN_DB_HOSTNAME = os.environ.get('GREYNIR_BIN_DB_HOST', DB_HOSTNAME)
-    BIN_DB_PORT = os.environ.get('GREYNIR_BIN_DB_PORT', DB_PORT)
-
-    try:
-        BIN_DB_PORT = int(BIN_DB_PORT)
-    except ValueError:
-        raise ConfigError("Invalid environment variable value: BIN_DB_PORT = {0}".format(BIN_DB_PORT))
-
     # Flask server host and port
     HOST = os.environ.get('GREYNIR_HOST', 'localhost')
     PORT = os.environ.get('GREYNIR_PORT', '5000')
@@ -792,15 +612,15 @@ class Settings:
             val = False
         try:
             if par == 'db_hostname':
-                Settings.DB_HOSTNAME = Settings.BIN_DB_HOSTNAME = val
+                Settings.DB_HOSTNAME = val
             elif par == 'db_port':
-                Settings.DB_PORT = Settings.BIN_DB_PORT = int(val)
+                Settings.DB_PORT = int(val)
             elif par == 'bin_db_hostname':
-                # Specify this after db_hostname if different from db_hostname
-                Settings.BIN_DB_HOSTNAME = val
+                # This is no longer required and has been deprecated
+                pass
             elif par == 'bin_db_port':
-                # Specify this after db_port if different from db_port
-                Settings.BIN_DB_PORT = int(val)
+                # This is no longer required and has been deprecated
+                pass
             elif par == 'host':
                 Settings.HOST = val
             elif par == 'port':
@@ -839,57 +659,7 @@ class Settings:
     @staticmethod
     def _handle_abbreviations(s):
         """ Handle abbreviations in the settings section """
-        # Format: abbrev[*] = "meaning" gender (kk|kvk|hk)
-        # An asterisk after an abbreviation ending with a period
-        # indicates that the abbreviation may finish a sentence
-        a = s.split('=', maxsplit=1)
-        if len(a) != 2:
-            raise ConfigError("Wrong format for abbreviation: should be abbreviation = meaning")
-        abbrev = a[0].strip()
-        if not abbrev:
-            raise ConfigError("Missing abbreviation. Format should be abbreviation = meaning.")
-        m = a[1].strip().split('\"')
-        par = ""
-        if len(m) >= 3:
-            # Something follows the last quote
-            par = m[-1].strip()
-        gender = "hk" # Default gender is neutral
-        fl = None # Default word category is None
-        if par:
-            p = par.split()
-            if len(p) >= 1:
-                gender = p[0].strip()
-            if len(p) >= 2:
-                fl = p[1].strip()
-        Abbreviations.add(abbrev, m[1], gender, fl)
-
-    @staticmethod
-    def _handle_meanings(s):
-        """ Handle additional word meanings in the settings section """
-        # Format: stofn ordmynd ordfl fl (default ob) beyging (default -)
-        a = s.split()
-        if len(a) < 2 or len(a) > 5:
-            raise ConfigError("Meaning should have two to five arguments, {0} given".format(len(a)))
-        stofn = None
-        fl = None
-        beyging = None
-        if len(a) == 2:
-            # Short format: only ordmynd and ordfl
-            ordmynd = a[0]
-            ordfl = a[1]
-        else:
-            # Full format: at least three arguments, stofn ordmynd ordfl
-            stofn = a[0]
-            ordmynd = a[1]
-            ordfl = a[2]
-            fl = a[3] if len(a) >= 4 else None
-            beyging = a[4] if len(a) >= 5 else None
-
-        if len(a) == 2 and "-" in ordmynd:
-            # Creating new meanings by prefixing existing ones
-            Meanings.add_composite(ordmynd, ordfl)
-        else:
-            Meanings.add(stofn, ordmynd, ordfl, fl, beyging)
+        pass
 
     @staticmethod
     def _handle_verb_objects(s):
@@ -952,6 +722,14 @@ class Settings:
         VerbSubjects.add(par)
 
     @staticmethod
+    def _handle_undeclinable_adjectives(s):
+        """ Handle list of undeclinable adjectives """
+        s = s.lower().strip()
+        if not s.isalpha():
+            raise ConfigError("Expected word but got '{0}' in undeclinable_adjectives".format(s))
+        UndeclinableAdjectives.add(s)
+
+    @staticmethod
     def _handle_noindex_words(s):
         """ Handle no index instructions in the settings section """
         # Format: category = [cat] followed by word stem list
@@ -1009,12 +787,16 @@ class Settings:
         """ Handle ambiguity preference hints in the settings section """
         # Format: word worse1 worse2... < better
         # If two less-than signs are used, the preference is even stronger (tripled)
-        factor = 3
-        a = s.lower().split("<<", maxsplit = 1)
+        # If three less-than signs are used, the preference is super strong (nine-fold)
+        factor = 9
+        a = s.lower().split("<<<", maxsplit = 1)
         if len(a) != 2:
-            # Not doubled preference: try a normal one
-            a = s.lower().split("<", maxsplit = 1)
-            factor = 1
+            factor = 3
+            a = s.lower().split("<<", maxsplit = 1)
+            if len(a) != 2:
+                # Not doubled preference: try a normal one
+                a = s.lower().split("<", maxsplit = 1)
+                factor = 1
         if len(a) != 2:
             raise ConfigError("Ambiguity preference missing less-than sign '<'")
         w = a[0].split()
@@ -1120,8 +902,9 @@ class Settings:
                 "name_preferences" : Settings._handle_name_preferences,
                 "stem_preferences" : Settings._handle_stem_preferences,
                 "ambiguous_phrases" : Settings._handle_ambiguous_phrases,
-                "meanings" : Settings._handle_meanings,
+                # "meanings" : Settings._handle_meanings,
                 "adjective_template" : Settings._handle_adjective_template,
+                "undeclinable_adjectives" : Settings._handle_undeclinable_adjectives,
                 "disallowed_names" : Settings._handle_disallowed_names,
                 "noindex_words" : Settings._handle_noindex_words,
                 "topics" : Settings._handle_topics
