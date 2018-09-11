@@ -628,7 +628,7 @@ class TerminalNode(Node):
     """ A Node corresponding to a terminal """
 
     # Undeclinable terminal categories
-    _NOT_DECLINABLE = frozenset([ "ao", "eo", "spao", "fs", "st", "stt", "nhm", "uh", "töl" ])
+    _NOT_DECLINABLE = frozenset([ "ao", "eo", "spao", "tao", "fs", "st", "stt", "nhm", "uh", "töl" ])
     _TD = dict() # Cache of terminal descriptors
 
     # Cache of word roots (stems) keyed by (word, at_start, terminal)

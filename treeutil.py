@@ -39,118 +39,152 @@ from reynir.matcher import SimpleTree, SimpleTreeBuilder
 WordTuple = namedtuple("WordTuple", ["stem", "cat"])
 
 
-_TEST_NT_MAP = {  # Til að prófa í parse_text_to_bracket_form()
-    "S0": "M",  # P veldur ruglingi við FS, breyti í M
-    "HreinYfirsetning": "S",
-    "Setning": "S",
-    "SetningLo": "S",
-    "SetningÁnF": "S",
-    "SetningAukafall": "S",
-    "SetningSkilyrði": "S",
-    "SetningUmAðRæða": "S",
-    "StViðtenging": "S",
-    "Tengisetning": "S",
-    "OgTengisetning": "S",
-    "Skilyrði": "S-COND",
-    "Afleiðing": "S-CONS",
-    "NlSkýring": "S-EXPLAIN",
-    "Tilvitnun": "S-QUOTE",
-    "Atvikssetning": "CP-ADV",
-    # "Tíðarsetning" : "CP-TMP",
-    "BeygingarliðurÁnUmröðunar": "BL",
-    "BeygingarliðurMeðUmröðun": "BL",
-    "FsMeðFallstjórn": "PP",
-    "Nl": "NP",
-    "Sérnafn": "N",
-    "Mannsnafn": "N",
-    "EfLiður": "NP-POSS",
-    "EfLiðurForskeyti": "NP-POSS",
-    "OkkarFramhald": "NP-POSS",
-    "Heimilisfang": "NP-ADDR",
-    "NlFrumlag": "NP-SUBJ",
-    "NlBeintAndlag": "NP-OBJ",
-    "NlÓbeintAndlag": "NP-IOBJ",
-    "NlSagnfylling": "NP-PRD",
-    "Pfn": "PRON",
-    "SagnInnskot": "ADVP",
-    "FsAtv": "ADVP",
-    "AtvFs": "ADVP",
-    "Atviksliður": "ADVP",
-    "LoAtviksliðir": "ADVP",
-    "Dagsetning": "ADVP-DATE",
-    "LoLiður": "ADJP",
-    "Töluorð": "NUM",
-    "OgEða": "C",
-    "OgEðaEn": "C",
-    "TengiorðEr": "C",
-    "TengiorðSem": "C",
+_TEST_NT_MAP = { # Til að prófa í parse_text_to_bracket_form()
+    "S0" : "M", # P veldur ruglingi við FS, breyti í M
+
+    "HreinYfirsetning" : "S",
+    "Setning" : "S",
+    "SetningLo" : "S",
+    "SetningÁnF" : "S",
+    "SetningAukafall" : "S",
+    "SetningSkilyrði" : "S",
+    "SetningUmAðRæða" : "S",
+    "StViðtenging" : "S",
+    "Tengisetning" : "S",
+    "OgTengisetning" : "S",
+    "Skilyrði" : "S-COND",
+    "Afleiðing" : "S-CONS",
+    "NlSkýring" : "S-EXPLAIN",
+    "Tilvitnun" : "S-QUOTE",
+    "Atvikssetning" : "CP-ADV",
+    #"Tíðarsetning" : "CP-TMP",
+    "BeygingarliðurÁnUmröðunar" : "BL",
+    "BeygingarliðurMeðUmröðun" : "BL",
+
+    "FsMeðFallstjórn" : "PP",
+
+    "Nl" : "NP",
+    "Sérnafn" : "N",
+    "Mannsnafn" : "N",
+    "EfLiður" : "NP-POSS",
+    "EfLiðurForskeyti" : "NP-POSS",
+    "OkkarFramhald" : "NP-POSS",
+    "Heimilisfang" : "NP-ADDR",
+    "NlFrumlag" : "NP-SUBJ",
+    "NlBeintAndlag" : "NP-OBJ",
+    "NlÓbeintAndlag" : "NP-IOBJ",
+    "NlSagnfylling" : "NP-PRD",
+
+    "Pfn" : "PRON",
+
+    "SagnInnskot" : "ADVP",
+    "FsAtv" : "ADVP",
+    "AtvFs" : "ADVP",
+    "Atviksliður" : "ADVP",
+    "LoAtviksliðir" : "ADVP",
+    "LoLiður" : "ADJP",
+    "Töluorð" : "NUM",
+    "Magn" : "NUM-MEASURE",
+
+    "OgEða" : "C",
+    "OgEðaEn" : "C",
+    "TengiorðEr" : "C",
+    "TengiorðSem" : "C",
     "Greinir": "DET",
-    # "Lo" : "ADJ",
+    #"Lo" : "ADJ",
+   
+    # Tímaliðir - nýir
+    "FöstDagsetning" : "ADVP-DATE-ABS",
+    "AfstæðDagsetning" : "ADVP-DATE-REL",
+    "FasturTímapunktur" : "ADVP-TIMESTAMP-ABS",
+    "AfstæðurTímapunktur" : "ADVP-TIMESTAMP-REL",
+    "Tíðni" : "ADVP-TMP-SET",
+    "Tímabil" : "ADVP-DUR",
+    "FastTímabil" : "ADVP-DUR-ABS",
+    "AfstættTímabil" : "ADVP-DUR-REL",
+    "TímabilTími" : "ADVP-DUR-TIME",
+
 }
 
 _TEST_TERMINAL_MAP = {
     # To specify the creation of intermediate nonterminals
     # for particular terminals, put the first part of the terminal
     # name here
-    "fs": "P",
-    "no": "N",
-    "hk": "N",
-    "kk": "N",
-    "kvk": "N",
-    "fyrirtæki": "N",
-    "fn": "PRON",
-    "pfn": "PRON",
-    "abfn": "PRON",
-    "so": "V",
-    "ao": "ADV",
-    "eo": "ADV",
-    "spao": "ADV",
-    "lo": "ADJ",
-    "raðnr": "ADJ",  # Raðtölur
-    "töl": "NUM",
-    "tala": "NUM",
-    "ártal": "NUM",
-    "st": "C",
-    "stt": "C",
-    "nhm": "INF",  # Nafnháttarmerki
-    "gr": "DET",
+    "fs" : "P",
+    "no" : "N",
+    "hk" : "N",
+    "kk" : "N",
+    "kvk" : "N",
+    "fyrirtæki" : "N",
+    "fn" : "PRON",
+    "pfn" : "PRON",
+    "abfn" : "PRON",
+    "so" : "V",
+    "ao" : "ADV",
+    "eo" : "ADV",
+    "spao" : "ADV",
+    "tao" : "ADV",
+    "lo" : "ADJ",
+    "raðnr" : "ADJ", # Raðtölur
+    
+    "to" : "NUM",
+    "töl" : "NUM",
+    "tala" : "NUM",
+    "ártal" : "NUM",
+    "st" : "C",
+    "stt" : "C", 
+    "nhm" : "INF", # Nafnháttarmerki
+    "gr" : "DET",
 }
 
-_TEST_ID_MAP = {  # Til að prófa í parse_text_to_bracket_form()
-    "M": dict(name="Málsgrein"),  # Breytti úr P til að forðast rugling
-    "S": dict(name="Setning", subject_to={"S", "S-EXPLAIN"}),
-    "S-COND": dict(name="Skilyrði", overrides="S"),  # Condition
-    "S-CONS": dict(name="Afleiðing", overrides="S"),  # Consequence
-    "S-EXPLAIN": dict(name="Skýring"),  # Explanation
-    "S-QUOTE": dict(name="Tilvitnun"),  # Quote at end of sentence
-    # "CP-TMP" : dict(name = "Tíðaratvikssetning"), # Temporal adverbial clause
-    "CP-ADV": dict(name="Atvikssetning"),  # Adverbial clause
-    "BL": dict(name="Beygingarliður"),
+_TEST_ID_MAP = { # Til að prófa í parse_text_to_bracket_form()
+    "M" : dict(name = "Málsgrein"), # Breytti úr P til að forðast rugling
+    "S" : dict(name = "Setning", subject_to = { "S", "S-EXPLAIN" }),
+    "S-COND" : dict(name = "Skilyrði", overrides = "S"), # Condition
+    "S-CONS" : dict(name = "Afleiðing", overrides = "S"), # Consequence
+    "S-EXPLAIN" : dict(name = "Skýring"), # Explanation
+    "S-QUOTE" : dict(name = "Tilvitnun"), # Quote at end of sentence
+    #"CP-TMP" : dict(name = "Tíðaratvikssetning"), # Temporal adverbial clause
+    "CP-ADV" : dict(name = "Atvikssetning"), # Adverbial clause
+    "BL" : dict(name = "Beygingarliður"),
+
     # "VP" : dict(name = "Sagnliður", subject_to = { "VP" }),
-    "NP": dict(name="Nafnliður", subject_to={"NP-SUBJ", "NP-OBJ", "NP-IOBJ", "NP-PRD"}),
-    "NP-POSS": dict(name="Eignarfallsliður", overrides="NP"),
-    "NP-ADDR": dict(name="Heimilisfang", overrides="NP"),
-    "NP-SUBJ": dict(name="Frumlag"),
-    "NP-OBJ": dict(name="Beint andlag"),
-    "NP-IOBJ": dict(name="Óbeint andlag"),
-    "NP-PRD": dict(name="Sagnfylling"),
-    "ADVP": dict(name="Atviksliður", subject_to={"ADVP"}),
-    "ADVP-DATE": dict(name="Tímasetning", overrides="ADVP"),
-    "PP": dict(name="Forsetningarliður", overrides="ADVP"),
-    "ADJP": dict(name="Lýsingarliður"),
-    # Hausar
-    "ADV": dict(name="Atviksorð"),
-    "V": dict(name="Sögn"),
-    "N": dict(name="Nafnorð"),
-    "PRON": dict(name="Fornafn"),
-    "P": dict(name="Forsetning"),
-    "INF": dict(name="Nafnháttarmerki"),
-    "NUM": dict(name="Töluorð"),
-    "C": dict(name="Samtenging"),
-    "ADJ": dict(name="Lýsingarorð", overrides="V"),
-    "DET": dict(name="Greinir"),
-}
+    "NP" : dict(name = "Nafnliður", subject_to = { "NP-SUBJ", "NP-OBJ", "NP-IOBJ", "NP-PRD" }),
+    "NP-POSS" : dict(name = "Eignarfallsliður", overrides = "NP"),
+    "NP-ADDR" : dict(name = "Heimilisfang", overrides = "NP"),
+    "NP-SUBJ" : dict(name = "Frumlag"),
+    "NP-OBJ" : dict(name = "Beint andlag"),
+    "NP-IOBJ" : dict(name = "Óbeint andlag"),
+    "NP-PRD" : dict(name = "Sagnfylling"),
 
+    "ADVP-DATE-ABS" : dict(name = "Föst dagsetning"),
+    "ADVP-DATE-REL" : dict(name = "Afstæð dagsetning"),
+    "ADVP-TIMESTAMP-ABS" : dict(name = "Fastur tímapunktur"),
+    "ADVP-TIMESTAMP-REL" : dict(name = "Afstæður tímapunktur"),
+    "ADVP-TMP-SET" : dict(name = "Tíðni"),
+    "ADVP-DUR" : dict(name = "Tímabil"),
+    "ADVP-DUR-ABS" : dict(name = "Fast tímabil", overrides = "ADVP-DUR"),
+    "ADVP-DUR-REL" : dict(name = "Afstætt tímabil", overrides = "ADVP-DUR"),
+    "ADVP-DUR-TIME" : dict(name = "Tímabil", overrides = "ADVP-DUR"),
+
+    "ADVP" : dict(name = "Atviksliður", subject_to = { "ADVP" }),
+    "ADVP-DATE" : dict(name = "Tímasetning", overrides = "ADVP"),
+    "PP" : dict(name = "Forsetningarliður", overrides = "ADVP"),
+    "ADJP" : dict(name = "Lýsingarliður"),
+    
+    # Hausar
+    "ADV" : dict(name = "Atviksorð"),
+    "V" : dict(name = "Sögn"),
+    "N" : dict(name = "Nafnorð"),
+    "PRON" : dict(name = "Fornafn"),
+    "P" : dict(name = "Forsetning"),
+    "INF" : dict(name = "Nafnháttarmerki"),
+    "NUM" : dict(name = "Töluorð"),
+    "NUM-MEASURE" : dict(name = "Magn"),
+    "C" : dict(name = "Samtenging"),
+    "ADJ" : dict(name = "Lýsingarorð", overrides = "V"),
+    "DET" : dict(name = "Greinir"),
+}
 
 class TreeUtility:
 
